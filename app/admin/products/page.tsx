@@ -21,6 +21,7 @@ const EMPTY_FORM = {
   sku: "",
   stock: "",
   image: null as string | null,
+  images: [] as string[],
   is_active: true,
 };
 
@@ -77,6 +78,7 @@ export default function AdminProductsPage() {
       sku: p.sku ?? "",
       stock: String(p.stock),
       image: p.image,
+      images: p.images ? p.images.map(img => img.url) : [],
       is_active: p.is_active,
     });
     setModalOpen(true);
@@ -94,6 +96,7 @@ export default function AdminProductsPage() {
       sku: form.sku,
       stock: Number(form.stock) || 0,
       image: form.image,
+      images: form.images.map((url, i) => ({ id: `img-${Date.now()}-${i}`, product_id: editing?.id || "", url, sort_order: i + 1 })),
       is_active: form.is_active,
     };
     if (editing) {
@@ -220,7 +223,40 @@ export default function AdminProductsPage() {
 
       <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={editing ? "Mahsulotni tahrirlash" : "Yangi mahsulot qo'shish"} width="max-w-2xl">
         <form onSubmit={handleSubmit} className="space-y-4">
-          <ImageUploader value={form.image} onChange={(v) => setForm((f) => ({ ...f, image: v }))} label="Asosiy rasm" />
+          <div className="mb-4">
+            <label className="mb-2 block text-sm font-medium">Mahsulot rasmlari *</label>
+            <div className="flex gap-4 overflow-x-auto pb-2 custom-scrollbar">
+              <ImageUploader 
+                value={form.image} 
+                onChange={(v) => setForm((f) => ({ ...f, image: v }))} 
+                label="Asosiy" 
+              />
+              {form.images.map((img, idx) => (
+                <ImageUploader 
+                  key={idx}
+                  value={img} 
+                  onChange={(v) => {
+                    setForm((f) => {
+                      const newImages = [...f.images];
+                      if (v) newImages[idx] = v;
+                      else newImages.splice(idx, 1);
+                      return { ...f, images: newImages };
+                    });
+                  }} 
+                  label={`Qo'shimcha ${idx + 1}`} 
+                />
+              ))}
+              {(form.image || form.images.length > 0) && (
+                <ImageUploader 
+                  value={null} 
+                  onChange={(v) => {
+                    if (v) setForm((f) => ({ ...f, images: [...f.images, v] }));
+                  }} 
+                  label="Yana qo'shish" 
+                />
+              )}
+            </div>
+          </div>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="sm:col-span-2">

@@ -40,8 +40,10 @@ export function AccountSidebar() {
   const searchParams = useSearchParams();
   const [isOpen, setIsOpen] = useState(false);
   const isAdmin = user?.role === "super_admin" || user?.role === "moderator" || user?.role === "content_admin";
-  const renderNav = NAV;
-
+  const renderNav = [...NAV];
+  if (isAdmin) {
+    renderNav.splice(1, 0, { href: "/admin", label: "Admin Panelga o'tish", icon: LayoutDashboard });
+  }
   const currentTab = searchParams.get("tab");
   const currentPathWithTab = currentTab ? `${pathname}?tab=${currentTab}` : pathname;
 
