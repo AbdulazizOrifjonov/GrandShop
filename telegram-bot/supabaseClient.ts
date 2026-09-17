@@ -1,17 +1,10 @@
-import fs from "fs";
-import path from "path";
+import { createClient } from "@supabase/supabase-js";
 import crypto from "crypto";
 
-// Since the user is using localStorage and lib/sample-data.ts,
-// we will intercept the Supabase creation and write directly to lib/sample-data.ts!
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://jcxunlvloemnhnsxjwrh.supabase.co";
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "sb_publishable_4zhII_zDXEp-yRK40kHyLQ_PLjaJ4dL";
 
-const dataFilePath = path.join(process.cwd(), "lib", "sample-data.ts");
-const publicImgDir = path.join(process.cwd(), "public", "telegram");
-
-// Ensure public directory exists
-if (!fs.existsSync(publicImgDir)) {
-  fs.mkdirSync(publicImgDir, { recursive: true });
-}
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 export async function uploadImageToSupabase(url: string, filename: string): Promise<string | null> {
   try {
@@ -21,27 +14,26 @@ export async function uploadImageToSupabase(url: string, filename: string): Prom
     const arrayBuffer = await response.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
     
-    // Save locally to public/telegram
-    const filePath = path.join(publicImgDir, filename);
-    fs.writeFileSync(filePath, buffer);
+    // Upload to Supabase Storage
+    const { data, error } = await supabase.storage
+      .from('shop-images')
+      .upload(`bot/${filename}`, buffer, {
+        contentType: 'image/jpeg',
+        upsert: true
+      });
+
+    if (error) {
+      console.error("Supabase storage error:", error);
+      return null;
+    }
     
-    // Return relative url
-    return `/telegram/${filename}`;
+    // Get public URL
+    const { data: publicUrlData } = supabase.storage.from('shop-images').getPublicUrl(`bot/${filename}`);
+    return publicUrlData.publicUrl;
   } catch (error) {
     console.error("Error downloading image:", error);
     return null;
   }
-}
-
-function generateSlug(text: string): string {
-  return text
-    .toString()
-    .toLowerCase()
-    .trim()
-    .replace(/\s+/g, '-')
-    .replace(/[^\w\-]+/g, '')
-    .replace(/\-\-+/g, '-')
-    + "-" + crypto.randomBytes(2).toString("hex");
 }
 
 export async function insertProduct(
@@ -54,7 +46,6 @@ export async function insertProduct(
   categoryId: string,
   brand: string | null = null
 ) {
-  // Use a pseudo-random ID since we don't have crypto.randomUUID available in standard Node easily without import
   const id = crypto.randomUUID();
   const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '-' + Math.floor(Math.random() * 10000);
   const now = new Date().toISOString();
@@ -71,54 +62,56 @@ export async function insertProduct(
 
   const extraImages = imageUrls.map((u, idx) => ({ id: crypto.randomUUID(), product_id: id, url: u, sort_order: idx }));
 
-  const brandStr = brand ? `"${brand}"` : "null";
-  const newProductStr = `  { id: "${id}", name: ${JSON.stringify(name)}, slug: "${slug}", description: ${JSON.stringify(description)}, price: ${price}, old_price: null, discount: null, category_id: "${categoryId}", brand: ${brandStr}, stock: 10, sku: "BOT-${messageId}", rating: 5.0, reviews_count: 0, image: ${imageUrls.length > 0 ? `"${imageUrls[0]}"` : "null"}, images: ${JSON.stringify(extraImages)}, specifications: ${JSON.stringify(specs)}, colors: [], mechanism: "Avtomatik", is_active: true, is_new: true, created_at: "${now}", updated_at: "${now}" },\n];`;
+  const payload = {
+    id,
+    name,
+    slug,
+    description,
+    price,
+    old_price: null,
+    discount: null,
+    category_id: categoryId,
+    brand,
+    stock: 10,
+    sku: `BOT-${messageId}`,
+    rating: 5.0,
+    reviews_count: 0,
+    image: imageUrls.length > 0 ? imageUrls[0] : null,
+    images: extraImages,
+    specifications: specs,
+    colors: [],
+    mechanism: "Avtomatik",
+    is_active: true,
+    is_new: true,
+    created_at: now,
+    updated_at: now
+  };
 
-  // Read current sample-data.ts
-  let content = fs.readFileSync(dataFilePath, "utf8");
-  
-  // Find the end of sampleProducts array
-  // It ends with: "];" right before "export const sampleSliders"
-  
-  // Replace the closing bracket of sampleProducts with our new product
-  // A bit hacky but works for local dev
-  const targetStr = "];\n\nexport const sampleSliders";
-  if (content.includes(targetStr)) {
-    content = content.replace(targetStr, newProductStr + "\n\nexport const sampleSliders");
-    fs.writeFileSync(dataFilePath, content);
-  } else {
-    // Fallback if formatting is different
-    const fallbackTarget = "];\r\n\r\nexport const sampleSliders";
-    if (content.includes(fallbackTarget)) {
-      content = content.replace(fallbackTarget, newProductStr + "\r\n\r\nexport const sampleSliders");
-      fs.writeFileSync(dataFilePath, content);
-    }
+  const { error } = await supabase.from('products').insert(payload);
+  if (error) {
+    console.error("Supabase DB Insert error:", error);
   }
-
-  // NOTE: Because the app uses localStorage (lib/store.tsx loads from localStorage on mount),
-  // The user might need to clear their browser localStorage for 'gws_products' to see the new item, 
-  // OR the bot could theoretically inject it... but updating sample-data.ts is the best we can do server-side.
-  
-  return id;
 }
 
-export async function createNewCategory(id: string, name: string) {
-  const slug = generateSlug(name);
-  const now = new Date().toISOString().split('T')[0];
+export async function createNewCategory(name: string): Promise<string> {
+  const id = crypto.randomUUID();
+  const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '-' + crypto.randomBytes(2).toString("hex");
   
-  const newCatStr = `  { id: "${id}", name: ${JSON.stringify(name)}, slug: "${slug}", description: ${JSON.stringify(name)} + " bo'limi", image_url: null, is_active: true, product_count: 0, created_at: "${now}" },\n];`;
-  
-  let content = fs.readFileSync(dataFilePath, "utf8");
-  
-  const targetStr = "];\n\nconst img";
-  if (content.includes(targetStr)) {
-    content = content.replace(targetStr, newCatStr + "\n\nconst img");
-    fs.writeFileSync(dataFilePath, content);
-  } else {
-    const fallbackTarget = "];\r\n\r\nconst img";
-    if (content.includes(fallbackTarget)) {
-      content = content.replace(fallbackTarget, newCatStr + "\r\n\r\nconst img");
-      fs.writeFileSync(dataFilePath, content);
-    }
+  const payload = {
+    id,
+    name,
+    slug,
+    description: "",
+    image_url: null,
+    is_active: true,
+    product_count: 0
+  };
+
+  const { error } = await supabase.from('categories').insert(payload);
+  if (error) {
+    console.error("Supabase Category Insert error:", error);
+    // If it fails, maybe return a fallback
+    return "c1"; 
   }
+  return id;
 }
