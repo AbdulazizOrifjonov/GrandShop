@@ -187,7 +187,7 @@ export default function ProfilePage() {
                           <p className="text-navy-900/60 hidden sm:block">{o.items?.length ?? 0} ta mahsulot</p>
                           <p className="font-semibold">{o.total.toLocaleString("ru-RU")} so'm</p>
                           <span className="rounded-full bg-navy-50 px-3 py-1 text-xs font-medium text-navy-900">
-                            {o.status === 'pending' ? 'Kutilmoqda' : o.status === 'processing' ? 'Jarayonda' : o.status === 'completed' ? 'Tugallangan' : 'Bekor qilingan'}
+                            {o.status === 'new' ? 'Yangi' : o.status === 'processing' ? 'Jarayonda' : o.status === 'shipped' ? 'Yetkazilmoqda' : o.status === 'delivered' ? 'Yetkazilgan' : 'Bekor qilingan'}
                           </span>
                           <ChevronRight size={16} className="text-navy-900/30" />
                         </Link>

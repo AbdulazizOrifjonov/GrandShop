@@ -25,7 +25,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
       </div>
 
       <div className="container-shop grid grid-cols-1 gap-8 pb-16 lg:grid-cols-[260px_1fr]">
-        <AccountSidebar active="/orders" />
+        <AccountSidebar />
 
         {!order ? (
           <div className="rounded-xl border border-dashed border-navy-100 py-20 text-center text-navy-900/50">
