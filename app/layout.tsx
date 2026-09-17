@@ -35,7 +35,7 @@ export default function RootLayout({
               <CartProvider>
                 <WishlistProvider>
                   <Suspense fallback={<div className="min-h-screen" />}>
-                    <div className="pb-16 md:pb-0">{children}</div>
+                    <div className="pb-24 md:pb-0">{children}</div>
                   </Suspense>
                   <MobileBottomNav />
                 </WishlistProvider>

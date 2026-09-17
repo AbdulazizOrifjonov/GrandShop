@@ -22,7 +22,7 @@ export function MobileBottomNav() {
   ];
 
   return (
-    <div className="fixed bottom-0 left-0 z-50 flex h-16 w-full items-center justify-around border-t border-navy-100 bg-white md:hidden pb-safe ios-safe-bottom nav-touch">
+    <div className="fixed bottom-0 left-0 z-50 flex w-full items-center justify-around border-t border-navy-100 bg-white md:hidden py-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] nav-touch">
       {navItems.map((item) => {
         const isActive = item.href === "/" ? pathname === "/" : pathname?.startsWith(item.href);
         return (
