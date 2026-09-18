@@ -101,17 +101,6 @@ export default function CartPage() {
               ))}
             </div>
           )}
-
-          {suggestions.length > 0 && (
-            <div className="mt-10">
-              <h2 className="mb-4 text-lg font-bold text-navy-900">Sizga tavsiya etamiz</h2>
-              <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
-                {suggestions.map((p) => (
-                  <ProductCard key={p.id} product={p} />
-                ))}
-              </div>
-            </div>
-          )}
         </div>
 
         <aside className="sticky top-[100px] self-start space-y-4 rounded-xl border border-navy-100 p-5">
@@ -163,6 +152,17 @@ export default function CartPage() {
           </div>
         </aside>
       </div>
+
+      {suggestions.length > 0 && (
+        <div className="container-shop pb-16">
+          <h2 className="mb-4 text-lg font-bold text-navy-900">Sizga tavsiya etamiz</h2>
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+            {suggestions.map((p) => (
+              <ProductCard key={p.id} product={p} />
+            ))}
+          </div>
+        </div>
+      )}
 
       <Footer />
     </div>
