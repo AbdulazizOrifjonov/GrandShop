@@ -64,11 +64,11 @@ export default function CartPage() {
             <div className="space-y-4">
               {detailed.map(({ item, product }) => (
                 <div key={item.productId} className="flex flex-col sm:flex-row sm:items-center gap-4 rounded-xl border border-navy-100 p-3 sm:p-4">
-                  <div className="flex items-start gap-4 flex-1">
+                  <div className="flex items-start gap-3 sm:gap-4 flex-1">
                     <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-navy-50">
                       {product!.image && <Image src={product!.image} alt={product!.name} fill className="object-cover" />}
                     </div>
-                    <div className="flex-1">
+                    <div className="flex-1 pr-2 sm:pr-0">
                       <Link href={`/products/${product!.slug}`} className="font-semibold text-navy-900 hover:text-gold-500 line-clamp-2 leading-tight">
                         {product!.name}
                       </Link>
@@ -79,9 +79,16 @@ export default function CartPage() {
                         {product!.stock > 0 ? "✓ Mavjud" : "Tugagan"}
                       </span>
                     </div>
+                    {/* Mobile Trash */}
+                    <button
+                      onClick={() => removeItem(item.productId)}
+                      className="sm:hidden text-navy-900/40 hover:text-danger flex shrink-0 items-center justify-center h-8 w-8 rounded-full hover:bg-danger/10 transition-colors -mt-1 -mr-1"
+                    >
+                      <Trash2 size={18} />
+                    </button>
                   </div>
                   
-                  <div className="flex items-center justify-between sm:justify-end gap-4 pl-[96px] sm:pl-0 border-t sm:border-0 border-navy-100 pt-3 sm:pt-0">
+                  <div className="flex items-center justify-between sm:justify-end gap-4 pl-[92px] sm:pl-0 border-t sm:border-0 border-navy-100 pt-3 sm:pt-0">
                     <QuantitySelector
                       value={item.quantity}
                       onChange={(v) => updateQuantity(item.productId, v)}
@@ -90,9 +97,10 @@ export default function CartPage() {
                     <div className="flex-1 sm:flex-none sm:w-32 text-right font-semibold text-navy-900 whitespace-nowrap">
                       {formatSom(product!.price * item.quantity)}
                     </div>
+                    {/* Desktop Trash */}
                     <button
                       onClick={() => removeItem(item.productId)}
-                      className="text-navy-900/40 hover:text-danger flex shrink-0 items-center justify-center h-8 w-8 rounded-full hover:bg-danger/10 transition-colors"
+                      className="hidden sm:flex text-navy-900/40 hover:text-danger shrink-0 items-center justify-center h-8 w-8 rounded-full hover:bg-danger/10 transition-colors"
                     >
                       <Trash2 size={18} />
                     </button>
