@@ -62,10 +62,9 @@ export function CatalogView({
     return list;
   }, [products, categories, categorySlug, initialSearch, saleOnly, selectedBrands, priceMax, sort]);
 
-  // Calculate page size dynamically to always have exactly 7 pages (or fewer if not enough products)
-  const calculatedPageSize = Math.max(12, Math.ceil(filtered.length / 7));
-  const totalPages = Math.max(1, Math.ceil(filtered.length / calculatedPageSize));
-  const pageItems = filtered.slice((page - 1) * calculatedPageSize, page * calculatedPageSize);
+  const pageSize = 12;
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const pageItems = filtered.slice((page - 1) * pageSize, page * pageSize);
 
   function toggleBrand(b: string) {
     setPage(1);
@@ -255,17 +254,29 @@ export function CatalogView({
             >
               ‹
             </button>
-            {Array.from({ length: totalPages }).map((_, i) => (
-              <button
-                key={i}
-                onClick={() => setPage(i + 1)}
-                className={`flex h-9 w-9 items-center justify-center rounded-lg text-sm ${
-                  page === i + 1 ? "bg-navy-900 text-white" : "border border-navy-100 text-navy-900"
-                }`}
-              >
-                {i + 1}
-              </button>
-            ))}
+            {(() => {
+              let startPage = Math.max(1, page - 3);
+              let endPage = startPage + 6;
+              if (endPage > totalPages) {
+                endPage = totalPages;
+                startPage = Math.max(1, endPage - 6);
+              }
+              const pages = [];
+              for (let i = startPage; i <= endPage; i++) {
+                pages.push(i);
+              }
+              return pages.map((p) => (
+                <button
+                  key={p}
+                  onClick={() => setPage(p)}
+                  className={`flex h-9 w-9 items-center justify-center rounded-lg text-sm ${
+                    page === p ? "bg-navy-900 text-white" : "border border-navy-100 text-navy-900"
+                  }`}
+                >
+                  {p}
+                </button>
+              ));
+            })()}
             <button
               disabled={page === totalPages}
               onClick={() => setPage((p) => p + 1)}

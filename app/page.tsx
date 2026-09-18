@@ -29,7 +29,7 @@ export default function Home() {
     .slice(0, 10);
     
   const featured = products.filter((p) => p.is_active);
-  const pageSize = Math.max(5, Math.ceil(featured.length / 7));
+  const pageSize = 10;
   const totalPages = Math.max(1, Math.ceil(featured.length / pageSize));
   const visibleFeatured = featured.slice((page - 1) * pageSize, page * pageSize);
 
@@ -92,20 +92,32 @@ export default function Home() {
             >
               ‹
             </button>
-            {Array.from({ length: totalPages }).map((_, i) => (
-              <button
-                key={i}
-                onClick={() => {
-                  setPage(i + 1);
-                  window.scrollTo({ top: document.body.scrollHeight - 1200, behavior: "smooth" });
-                }}
-                className={`flex h-9 w-9 items-center justify-center rounded-lg text-sm ${
-                  page === i + 1 ? "bg-navy-900 text-white" : "border border-navy-100 text-navy-900"
-                }`}
-              >
-                {i + 1}
-              </button>
-            ))}
+            {(() => {
+              let startPage = Math.max(1, page - 3);
+              let endPage = startPage + 6;
+              if (endPage > totalPages) {
+                endPage = totalPages;
+                startPage = Math.max(1, endPage - 6);
+              }
+              const pages = [];
+              for (let i = startPage; i <= endPage; i++) {
+                pages.push(i);
+              }
+              return pages.map((p) => (
+                <button
+                  key={p}
+                  onClick={() => {
+                    setPage(p);
+                    window.scrollTo({ top: document.body.scrollHeight - 1200, behavior: "smooth" });
+                  }}
+                  className={`flex h-9 w-9 items-center justify-center rounded-lg text-sm ${
+                    page === p ? "bg-navy-900 text-white" : "border border-navy-100 text-navy-900"
+                  }`}
+                >
+                  {p}
+                </button>
+              ));
+            })()}
             <button
               disabled={page === totalPages}
               onClick={() => {
