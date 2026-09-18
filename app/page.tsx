@@ -22,7 +22,6 @@ import { useState, useEffect } from "react";
 export default function Home() {
   const { products, categories, sliders } = useStore();
   const [page, setPage] = useState(1);
-  const pageSize = 15;
 
   const activeCategories = categories.filter((c) => c.is_active).slice(0, 6);
   const saleProducts = products
@@ -30,7 +29,8 @@ export default function Home() {
     .slice(0, 10);
     
   const featured = products.filter((p) => p.is_active);
-  const totalPages = Math.ceil(featured.length / pageSize);
+  const pageSize = Math.max(5, Math.ceil(featured.length / 7));
+  const totalPages = Math.max(1, Math.ceil(featured.length / pageSize));
   const visibleFeatured = featured.slice((page - 1) * pageSize, page * pageSize);
 
   return (
@@ -92,38 +92,20 @@ export default function Home() {
             >
               ‹
             </button>
-            {(() => {
-              let pages = [];
-              if (totalPages <= 5) {
-                for (let i = 1; i <= totalPages; i++) pages.push(i);
-              } else {
-                if (page <= 3) {
-                  pages = [1, 2, 3, 4, '...', totalPages];
-                } else if (page >= totalPages - 2) {
-                  pages = [1, '...', totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
-                } else {
-                  pages = [1, '...', page - 1, page, page + 1, '...', totalPages];
-                }
-              }
-              return pages.map((p, i) => (
-                p === '...' ? (
-                  <span key={`dots-${i}`} className="flex h-9 w-4 sm:w-9 items-center justify-center text-navy-900/50">...</span>
-                ) : (
-                  <button
-                    key={p}
-                    onClick={() => {
-                      setPage(p as number);
-                      window.scrollTo({ top: document.body.scrollHeight - 1200, behavior: "smooth" });
-                    }}
-                    className={`flex h-9 w-9 items-center justify-center rounded-lg text-sm ${
-                      page === p ? "bg-navy-900 text-white" : "border border-navy-100 text-navy-900"
-                    }`}
-                  >
-                    {p}
-                  </button>
-                )
-              ));
-            })()}
+            {Array.from({ length: totalPages }).map((_, i) => (
+              <button
+                key={i}
+                onClick={() => {
+                  setPage(i + 1);
+                  window.scrollTo({ top: document.body.scrollHeight - 1200, behavior: "smooth" });
+                }}
+                className={`flex h-9 w-9 items-center justify-center rounded-lg text-sm ${
+                  page === i + 1 ? "bg-navy-900 text-white" : "border border-navy-100 text-navy-900"
+                }`}
+              >
+                {i + 1}
+              </button>
+            ))}
             <button
               disabled={page === totalPages}
               onClick={() => {
