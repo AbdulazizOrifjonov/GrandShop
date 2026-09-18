@@ -63,35 +63,54 @@ export default function CartPage() {
           ) : (
             <div className="space-y-4">
               {detailed.map(({ item, product }) => (
-                <div key={item.productId} className="flex items-center gap-4 rounded-xl border border-navy-100 p-3">
-                  <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-navy-50">
-                    {product!.image && <Image src={product!.image} alt={product!.name} fill className="object-cover" />}
+                <div key={item.productId} className="relative flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 rounded-xl border border-navy-100 p-3 sm:p-4">
+                  
+                  {/* Top: Image & Info */}
+                  <div className="flex items-start sm:items-center gap-3 sm:flex-1">
+                    <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-navy-50">
+                      {product!.image && <Image src={product!.image} alt={product!.name} fill className="object-cover" />}
+                    </div>
+                    <div className="flex-1 pr-6 sm:pr-0">
+                      <Link href={`/products/${product!.slug}`} className="line-clamp-2 text-sm sm:text-base font-semibold leading-tight text-navy-900 hover:text-gold-500">
+                        {product!.name}
+                      </Link>
+                      <p className="mt-1 text-xs text-navy-900/50 line-clamp-1">
+                        {product!.brand} {product!.mechanism ? `| ${product!.mechanism}` : ""}
+                      </p>
+                      <span className="mt-1 inline-flex items-center gap-1 text-[10px] sm:text-xs text-success">
+                        {product!.stock > 0 ? "✓ Mavjud" : "Tugagan"}
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex-1">
-                    <Link href={`/products/${product!.slug}`} className="font-semibold text-navy-900 hover:text-gold-500">
-                      {product!.name}
-                    </Link>
-                    <p className="text-xs text-navy-900/50">
-                      {product!.brand} {product!.mechanism ? `| Mexanizm: ${product!.mechanism}` : ""}
-                    </p>
-                    <span className="mt-1 inline-flex items-center gap-1 text-xs text-success">
-                      {product!.stock > 0 ? "✓ Mavjud" : "Tugagan"}
-                    </span>
+                  
+                  {/* Bottom: Quantity & Price */}
+                  <div className="flex items-center justify-between border-t border-navy-50 pt-3 sm:border-0 sm:pt-0">
+                    <QuantitySelector
+                      value={item.quantity}
+                      onChange={(v) => updateQuantity(item.productId, v)}
+                      max={product!.stock || 99}
+                    />
+                    <div className="text-right font-bold text-navy-900 whitespace-nowrap sm:w-32">
+                      {formatSom(product!.price * item.quantity)}
+                    </div>
+                    {/* Desktop Delete */}
+                    <button
+                      onClick={() => removeItem(item.productId)}
+                      className="hidden sm:block ml-4 text-navy-900/40 hover:text-danger transition-colors"
+                      title="O'chirish"
+                    >
+                      <Trash2 size={18} />
+                    </button>
                   </div>
-                  <QuantitySelector
-                    value={item.quantity}
-                    onChange={(v) => updateQuantity(item.productId, v)}
-                    max={product!.stock || 99}
-                  />
-                  <div className="w-36 text-right font-semibold text-navy-900 whitespace-nowrap">
-                    {formatSom(product!.price * item.quantity)}
-                  </div>
+
+                  {/* Mobile Delete */}
                   <button
                     onClick={() => removeItem(item.productId)}
-                    className="text-navy-900/40 hover:text-danger"
+                    className="absolute right-3 top-3 p-1 sm:hidden text-navy-900/40 hover:text-danger bg-white rounded-md transition-colors"
                   >
                     <Trash2 size={18} />
                   </button>
+
                 </div>
               ))}
             </div>
