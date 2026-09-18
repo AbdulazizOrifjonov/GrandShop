@@ -29,7 +29,7 @@ export default function Home() {
     .slice(0, 10);
     
   const featured = products.filter((p) => p.is_active);
-  const pageSize = 10;
+  const pageSize = 14;
   const totalPages = Math.max(1, Math.ceil(featured.length / pageSize));
   const visibleFeatured = featured.slice((page - 1) * pageSize, page * pageSize);
 
@@ -93,11 +93,11 @@ export default function Home() {
               ‹
             </button>
             {(() => {
-              let startPage = Math.max(1, page - 3);
-              let endPage = startPage + 6;
+              let startPage = Math.max(1, page - 6);
+              let endPage = startPage + 13;
               if (endPage > totalPages) {
                 endPage = totalPages;
-                startPage = Math.max(1, endPage - 6);
+                startPage = Math.max(1, endPage - 13);
               }
               const pages = [];
               for (let i = startPage; i <= endPage; i++) {

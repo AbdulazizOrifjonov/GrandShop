@@ -62,7 +62,7 @@ export function CatalogView({
     return list;
   }, [products, categories, categorySlug, initialSearch, saleOnly, selectedBrands, priceMax, sort]);
 
-  const pageSize = 12;
+  const pageSize = 14;
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const pageItems = filtered.slice((page - 1) * pageSize, page * pageSize);
 
@@ -258,11 +258,11 @@ export function CatalogView({
               ‹
             </button>
             {(() => {
-              let startPage = Math.max(1, page - 3);
-              let endPage = startPage + 6;
+              let startPage = Math.max(1, page - 6);
+              let endPage = startPage + 13;
               if (endPage > totalPages) {
                 endPage = totalPages;
-                startPage = Math.max(1, endPage - 6);
+                startPage = Math.max(1, endPage - 13);
               }
               const pages = [];
               for (let i = startPage; i <= endPage; i++) {
