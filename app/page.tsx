@@ -29,7 +29,7 @@ export default function Home() {
     .slice(0, 10);
     
   const featured = products.filter((p) => p.is_active);
-  const pageSize = 14;
+  const pageSize = 10;
   const totalPages = Math.max(1, Math.ceil(featured.length / pageSize));
   const visibleFeatured = featured.slice((page - 1) * pageSize, page * pageSize);
 
