@@ -72,7 +72,7 @@ export default function Home() {
         </div>
       </div>
 
-      <div className="container-shop py-6 pb-16">
+      <div className="container-shop py-6 pb-16" id="featured">
         <SectionHeader title="Mashhur mahsulotlar" href="/products" />
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
           {visibleFeatured.map((p) => (
@@ -86,7 +86,7 @@ export default function Home() {
               disabled={page === 1}
               onClick={() => {
                 setPage((p) => p - 1);
-                window.scrollTo({ top: document.body.scrollHeight - 1200, behavior: "smooth" });
+                document.getElementById('featured')?.scrollIntoView({ behavior: 'smooth' });
               }}
               className="flex h-9 w-9 items-center justify-center rounded-lg border border-navy-100 disabled:opacity-30"
             >
@@ -108,7 +108,7 @@ export default function Home() {
                   key={p}
                   onClick={() => {
                     setPage(p);
-                    window.scrollTo({ top: document.body.scrollHeight - 1200, behavior: "smooth" });
+                    document.getElementById('featured')?.scrollIntoView({ behavior: 'smooth' });
                   }}
                   className={`flex h-9 w-9 items-center justify-center rounded-lg text-sm ${
                     page === p ? "bg-navy-900 text-white" : "border border-navy-100 text-navy-900"
@@ -122,7 +122,7 @@ export default function Home() {
               disabled={page === totalPages}
               onClick={() => {
                 setPage((p) => p + 1);
-                window.scrollTo({ top: document.body.scrollHeight - 1200, behavior: "smooth" });
+                document.getElementById('featured')?.scrollIntoView({ behavior: 'smooth' });
               }}
               className="flex h-9 w-9 items-center justify-center rounded-lg border border-navy-100 disabled:opacity-30"
             >

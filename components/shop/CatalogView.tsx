@@ -249,7 +249,10 @@ export function CatalogView({
           <div className="mt-8 flex items-center justify-center gap-1 sm:gap-2 flex-wrap">
             <button
               disabled={page === 1}
-              onClick={() => setPage((p) => p - 1)}
+              onClick={() => {
+                setPage((p) => p - 1);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
               className="flex h-9 w-9 items-center justify-center rounded-lg border border-navy-100 disabled:opacity-30"
             >
               ‹
@@ -268,7 +271,10 @@ export function CatalogView({
               return pages.map((p) => (
                 <button
                   key={p}
-                  onClick={() => setPage(p)}
+                  onClick={() => {
+                    setPage(p);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
                   className={`flex h-9 w-9 items-center justify-center rounded-lg text-sm ${
                     page === p ? "bg-navy-900 text-white" : "border border-navy-100 text-navy-900"
                   }`}
@@ -279,7 +285,10 @@ export function CatalogView({
             })()}
             <button
               disabled={page === totalPages}
-              onClick={() => setPage((p) => p + 1)}
+              onClick={() => {
+                setPage((p) => p + 1);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
               className="flex h-9 w-9 items-center justify-center rounded-lg border border-navy-100 disabled:opacity-30"
             >
               ›
