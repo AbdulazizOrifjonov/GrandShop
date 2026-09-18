@@ -244,13 +244,9 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
           )}
 
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-            {product.stock > 0 ? (
-              <span className="flex items-center gap-1 text-sm text-success">
-                <Check size={16} /> Mavjud ({product.stock} dona)
-              </span>
-            ) : (
-              <span className="text-sm text-danger">Tugagan</span>
-            )}
+            <span className="flex items-center gap-1 text-sm text-success">
+              <Check size={16} /> Mavjud
+            </span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

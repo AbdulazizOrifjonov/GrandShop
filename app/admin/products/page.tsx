@@ -156,7 +156,6 @@ export default function AdminProductsPage() {
                 <th className="p-3">Kategoriya</th>
                 <th className="p-3">Brend</th>
                 <th className="p-3">Narxi</th>
-                <th className="p-3">Soni</th>
                 <th className="p-3">Holat</th>
                 <th className="p-3">Amallar</th>
               </tr>
@@ -180,14 +179,9 @@ export default function AdminProductsPage() {
                     </td>
                     <td className="p-3">{p.brand}</td>
                     <td className="p-3">{formatSom(p.price)}</td>
-                    <td className="p-3">{p.stock}</td>
                     <td className="p-3">
                       {!p.is_active ? (
                         <span className="flex items-center gap-1 text-xs text-navy-900/50"><span className="h-2 w-2 rounded-full bg-navy-900/30" /> Nofaol</span>
-                      ) : p.stock <= 0 ? (
-                        <span className="flex items-center gap-1 text-xs text-danger"><span className="h-2 w-2 rounded-full bg-danger" /> Tugagan</span>
-                      ) : p.stock <= 5 ? (
-                        <span className="flex items-center gap-1 text-xs text-warning"><span className="h-2 w-2 rounded-full bg-warning" /> Kam qoldi</span>
                       ) : (
                         <span className="flex items-center gap-1 text-xs text-success"><span className="h-2 w-2 rounded-full bg-success" /> Faol</span>
                       )}
@@ -203,7 +197,7 @@ export default function AdminProductsPage() {
                 );
               })}
               {pageItems.length === 0 && (
-                <tr><td colSpan={8} className="p-8 text-center text-navy-900/40">Mahsulot topilmadi.</td></tr>
+                <tr><td colSpan={7} className="p-8 text-center text-navy-900/40">Mahsulot topilmadi.</td></tr>
               )}
             </tbody>
           </table>
@@ -290,7 +284,7 @@ export default function AdminProductsPage() {
               <label className="mb-1 block text-sm font-medium">SKU</label>
               <input value={form.sku} onChange={(e) => setForm((f) => ({ ...f, sku: e.target.value }))} className="w-full rounded-lg border border-navy-100 px-3 py-2.5 text-sm" />
             </div>
-            <div>
+            <div className="hidden">
               <label className="mb-1 block text-sm font-medium">Soni (stock)</label>
               <input type="number" value={form.stock} onChange={(e) => setForm((f) => ({ ...f, stock: e.target.value }))} className="w-full rounded-lg border border-navy-100 px-3 py-2.5 text-sm" />
             </div>
