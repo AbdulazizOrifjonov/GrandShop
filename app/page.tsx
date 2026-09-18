@@ -17,14 +17,29 @@ const USPS = [
   { icon: Headphones, title: "24/7 Qo'llab-quvvatlash", subtitle: "Doimo aloqada" },
 ];
 
+import { useState, useEffect } from "react";
+
 export default function Home() {
   const { products, categories, sliders } = useStore();
+  const [visibleCount, setVisibleCount] = useState(15);
 
   const activeCategories = categories.filter((c) => c.is_active).slice(0, 6);
   const saleProducts = products
     .filter((p) => p.is_active && (p.discount || (p.old_price && p.old_price > p.price) || p.is_new))
     .slice(0, 10);
-  const featured = products.filter((p) => p.is_active).slice(0, 10);
+    
+  const featured = products.filter((p) => p.is_active);
+  const visibleFeatured = featured.slice(0, visibleCount);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 800) {
+        setVisibleCount((prev) => (prev < featured.length ? prev + 15 : prev));
+      }
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [featured.length]);
 
   return (
     <div className="min-h-screen bg-white">
@@ -68,7 +83,7 @@ export default function Home() {
       <div className="container-shop py-6 pb-16">
         <SectionHeader title="Mashhur mahsulotlar" href="/products" />
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
-          {featured.map((p) => (
+          {visibleFeatured.map((p) => (
             <ProductCard key={p.id} product={p} />
           ))}
         </div>
