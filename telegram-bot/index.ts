@@ -2,7 +2,7 @@ import { Telegraf, Context } from "telegraf";
 import { message } from "telegraf/filters";
 import dotenv from "dotenv";
 import { parseProductText, ParsedProduct } from "./aiParser";
-import { insertProduct, uploadImageToSupabase, createNewCategory } from "./supabaseClient";
+import { insertProduct, uploadImageToSupabase, createNewCategory, checkDuplicate } from "./supabaseClient";
 
 dotenv.config();
 
@@ -175,41 +175,48 @@ async function processMediaGroup(ctx: Context, mediaGroupId: string) {
 
     group.parsed = parsed;
 
-    const preview = `📦 **Product:** ${parsed.name || "Noma'lum"}
-💰 **Price:** ${parsed.price ? (parsed.price < 100000 ? "$" + parsed.price.toLocaleString("en-US") : parsed.price.toLocaleString("en-US") + " UZS") : "Topilmadi (Kiritish kerak)"}
-
-📋 **Characteristics:**
-${parsed.characteristics.length > 0 ? parsed.characteristics.map(c => `- ${c}`).join("\n") : "Topilmadi"}
-
-🖼 **Images:** ${group.photoIds.length}`;
-
-    const previewMsg = await ctx.replyWithMarkdown(preview + "\n\n👇 **Qaysi kategoriyaga qo'shilsin?**", {
-      reply_markup: {
-        inline_keyboard: [
-          [
-            { text: "Erkaklar uchun", callback_data: `cat_c1_${group.messageId}` },
-            { text: "Ayollar uchun", callback_data: `cat_c2_${group.messageId}` }
-          ],
-          [
-            { text: "Bolalar (Premium)", callback_data: `cat_c3_${group.messageId}` },
-            { text: "Aksessuarlar", callback_data: `cat_c7_${group.messageId}` }
-          ],
-          [
-            { text: "Smart soatlar", callback_data: `cat_c5_${group.messageId}` },
-            { text: "➕ Yangi qo'shish", callback_data: `addcat_${group.messageId}` }
-          ],
-          [
-            { text: "❌ Bekor qilish", callback_data: `cancel_${group.messageId}` }
-          ]
-        ]
+    if (parsed.name) {
+      const isDup = await checkDuplicate(parsed.name);
+      if (isDup) {
+        await ctx.telegram.editMessageText(ctx.chat?.id, statusMsg.message_id, undefined, "⚠️ **Bu mahsulot avval qo'shilgan!** Shuning uchun o'tkazib yuborildi.", { parse_mode: "Markdown" });
+        return;
       }
-    });
+    }
 
-    // Save to approved pool keyed by the original messageId so callback query can find it across new messages
-    approvedProducts.set(group.messageId, group);
+    await ctx.telegram.editMessageText(ctx.chat?.id, statusMsg.message_id, undefined, "🔄 Mahsulot tahlil qilindi, bazaga yozilmoqda...");
     
-    // Delete the "analyzing" message
-    await ctx.telegram.deleteMessage(ctx.chat?.id!, statusMsg.message_id).catch(() => {});
+    const categoryId = "c1"; 
+    let finalBrand = null;
+    const lowerName = parsed.name?.toLowerCase() || "";
+    if(lowerName.includes("rolex")) finalBrand = "Rolex";
+    else if(lowerName.includes("casio")) finalBrand = "Casio";
+    else if(lowerName.includes("tissot")) finalBrand = "Tissot";
+    else if(lowerName.includes("seiko")) finalBrand = "Seiko";
+    else if(lowerName.includes("hublot")) finalBrand = "Hublot";
+    else if(lowerName.includes("audemars")) finalBrand = "Audemars Piguet";
+    else if(lowerName.includes("patek")) finalBrand = "Patek Philippe";
+    
+    const uploadedUrls: string[] = [];
+    for (let i = 0; i < group.photoIds.length; i++) {
+      const fileId = group.photoIds[i];
+      const fileLink = await ctx.telegram.getFileLink(fileId);
+      const filename = `${Date.now()}_${i}.jpg`;
+      const publicUrl = await uploadImageToSupabase(fileLink.toString(), filename);
+      if (publicUrl) uploadedUrls.push(publicUrl);
+    }
+    
+    const productId = await insertProduct(
+      parsed.name || "Nomsiz Mahsulot",
+      parsed.description,
+      parsed.price || 0,
+      parsed.characteristics,
+      uploadedUrls,
+      group.messageId.toString(),
+      categoryId,
+      finalBrand
+    );
+    
+    await ctx.telegram.editMessageText(ctx.chat?.id, statusMsg.message_id, undefined, `✅ **Muvaffaqiyatli (Avtomatik)!** Mahsulot do'konga qo'shildi.\nID: ${productId}`, { parse_mode: "Markdown" });
 
   } catch (err) {
     console.error(err);

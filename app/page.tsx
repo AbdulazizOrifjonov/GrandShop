@@ -36,6 +36,9 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-white">
       <Header active="/" />
+      <div className="bg-red-500 text-white p-4 font-bold text-center">
+        DEBUG DB: {process.env.NEXT_PUBLIC_SUPABASE_URL || 'NO_ENV_SET'}
+      </div>
       <HeroSlider sliders={sliders} />
 
       <section className="border-b border-navy-100 bg-navy-50">
