@@ -91,7 +91,6 @@ export async function insertProduct(
   if (error) {
     console.error("Supabase DB Insert error:", error);
   }
-  return id;
 }
 
 export async function createNewCategory(name: string): Promise<string> {
@@ -116,10 +115,3 @@ export async function createNewCategory(name: string): Promise<string> {
   }
   return id;
 }
-
-export async function checkDuplicate(name: string): Promise<boolean> {
-  if (!name) return false;
-  const { data } = await supabase.from('products').select('id').eq('name', name).limit(1);
-  return !!(data && data.length > 0);
-}
-

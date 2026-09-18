@@ -1,7 +1,7 @@
 import fs from 'fs';
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = "https://jcxuntvtoemnhnsxjwrh.supabase.co";
+const supabaseUrl = "https://jcxunlvloemnhnsxjwrh.supabase.co";
 const supabaseAnonKey = "sb_publishable_4zhII_zDXEp-yRK40kHyLQ_PLjaJ4dL";
 
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
@@ -19,7 +19,6 @@ async function run() {
     console.log("Categories done");
   }
 
-  const img = new Proxy({}, { get: () => "https://grand-shop-beryl.vercel.app/telegram/1789672731099_0.jpg" });
   const productsRegex = /export const sampleProducts: Product\[\] = (\[[\s\S]*?\]);/m;
   const matchProd = code.match(productsRegex);
   if (matchProd) {
