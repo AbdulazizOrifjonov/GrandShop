@@ -62,8 +62,10 @@ export function CatalogView({
     return list;
   }, [products, categories, categorySlug, initialSearch, saleOnly, selectedBrands, priceMax, sort]);
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const pageItems = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  // Calculate page size dynamically to always have exactly 7 pages (or fewer if not enough products)
+  const calculatedPageSize = Math.max(12, Math.ceil(filtered.length / 7));
+  const totalPages = Math.max(1, Math.ceil(filtered.length / calculatedPageSize));
+  const pageItems = filtered.slice((page - 1) * calculatedPageSize, page * calculatedPageSize);
 
   function toggleBrand(b: string) {
     setPage(1);
@@ -253,35 +255,17 @@ export function CatalogView({
             >
               ‹
             </button>
-            {(() => {
-              let pages = [];
-              if (totalPages <= 5) {
-                for (let i = 1; i <= totalPages; i++) pages.push(i);
-              } else {
-                if (page <= 3) {
-                  pages = [1, 2, 3, 4, '...', totalPages];
-                } else if (page >= totalPages - 2) {
-                  pages = [1, '...', totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
-                } else {
-                  pages = [1, '...', page - 1, page, page + 1, '...', totalPages];
-                }
-              }
-              return pages.map((p, i) => (
-                p === '...' ? (
-                  <span key={`dots-${i}`} className="flex h-9 w-4 sm:w-9 items-center justify-center text-navy-900/50">...</span>
-                ) : (
-                  <button
-                    key={p}
-                    onClick={() => setPage(p as number)}
-                    className={`flex h-9 w-9 items-center justify-center rounded-lg text-sm ${
-                      page === p ? "bg-navy-900 text-white" : "border border-navy-100 text-navy-900"
-                    }`}
-                  >
-                    {p}
-                  </button>
-                )
-              ));
-            })()}
+            {Array.from({ length: totalPages }).map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setPage(i + 1)}
+                className={`flex h-9 w-9 items-center justify-center rounded-lg text-sm ${
+                  page === i + 1 ? "bg-navy-900 text-white" : "border border-navy-100 text-navy-900"
+                }`}
+              >
+                {i + 1}
+              </button>
+            ))}
             <button
               disabled={page === totalPages}
               onClick={() => setPage((p) => p + 1)}
