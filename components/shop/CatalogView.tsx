@@ -258,11 +258,11 @@ export function CatalogView({
               ‹
             </button>
             {(() => {
-              let startPage = Math.max(1, page - 6);
-              let endPage = startPage + 13;
+              let startPage = Math.max(1, page - 3);
+              let endPage = startPage + 7;
               if (endPage > totalPages) {
                 endPage = totalPages;
-                startPage = Math.max(1, endPage - 13);
+                startPage = Math.max(1, endPage - 7);
               }
               const pages = [];
               for (let i = startPage; i <= endPage; i++) {
