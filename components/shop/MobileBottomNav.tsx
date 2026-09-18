@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Search, Heart, ShoppingCart, Grid } from "lucide-react";
+import { Home, Search, Heart, ShoppingCart, LayoutGrid } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
 import { cn } from "@/lib/utils";
@@ -16,7 +16,7 @@ export function MobileBottomNav() {
 
   const navItems = [
     { href: "/", label: "Asosiy", icon: Home },
-    { href: "/products", label: "Katalog", icon: Grid },
+    { href: "/products", label: "Katalog", icon: LayoutGrid },
     { href: "/wishlist", label: "Sevimlilar", icon: Heart, badge: ids.length },
     { href: "/cart", label: "Savatcha", icon: ShoppingCart, badge: itemCount },
   ];
@@ -46,7 +46,7 @@ export function MobileBottomNav() {
             }}
           >
             <div className="relative flex items-center justify-center">
-              <item.icon size={22} className={isActive && item.icon === Heart ? "fill-navy-900" : ""} />
+              <item.icon size={22} strokeWidth={1.75} className={isActive && item.icon === Heart ? "fill-navy-900" : ""} />
               {!!item.badge && item.badge > 0 && (
                 <span className="absolute -right-2 -top-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-danger text-[9px] font-bold text-white shadow-sm ring-2 ring-white">
                   {item.badge}
