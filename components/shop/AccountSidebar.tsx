@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
@@ -39,7 +39,7 @@ export function AccountSidebar() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [isOpen, setIsOpen] = useState(false);
-  const isAdmin = user?.role === "super_admin" || user?.role === "moderator" || user?.role === "content_admin";
+  const isAdmin = user?.role === "admin" || user?.role === "super_admin";
   const renderNav = [...NAV];
   if (isAdmin) {
     renderNav.splice(1, 0, { href: "/admin", label: "Admin Panelga o'tish", icon: LayoutDashboard });
@@ -93,3 +93,4 @@ export function AccountSidebar() {
     </aside>
   );
 }
+

@@ -1,144 +1,106 @@
-"use client";
+﻿"use client";
 
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
+import { createContext, useCallback, useContext, useEffect, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
 
 export interface AppUser {
   id: string;
   fullName: string;
-  email: string;
   phone: string;
+  email?: string;
   address?: string;
   profileImage?: string;
-  role: "customer" | "moderator" | "content_admin" | "super_admin";
+  role: "user" | "admin" | "super_admin";
   createdAt: string;
 }
 
 interface AuthValue {
   user: AppUser | null;
   ready: boolean;
-  register: (data: { fullName: string; email: string; phone: string; password: string }) => { ok: boolean; error?: string };
-  login: (email: string, password: string) => { ok: boolean; error?: string; role?: string };
+  login: (fullName: string, phone: string, password?: string) => Promise<{ ok: boolean; error?: string }>;
   logout: () => void;
-  updateProfile: (data: Partial<AppUser>) => void;
+  updateProfile: (data: Partial<AppUser>) => Promise<void>;
   isAdmin: boolean;
 }
 
 const AuthContext = createContext<AuthValue | null>(null);
 
-const USERS_KEY = "gws_users"; // { email, password, ...AppUser }[]
-const SESSION_KEY = "gws_session"; // email of logged-in user
-
-const DEFAULT_ADMIN = {
-  fullName: "Abdulazizbek Orifjonov",
-  email: "admin@grandwatch.uz",
-  phone: "+998901234567",
-  password: "admin123",
-  role: "super_admin" as const,
-};
-
-function loadUsers(): (AppUser & { password: string })[] {
-  if (typeof window === "undefined") return [];
-  try {
-    const raw = localStorage.getItem(USERS_KEY);
-    if (raw) return JSON.parse(raw);
-  } catch {
-    /* ignore */
-  }
-  const seeded = [
-    { id: "admin_1", createdAt: new Date().toISOString(), ...DEFAULT_ADMIN },
-  ];
-  localStorage.setItem(USERS_KEY, JSON.stringify(seeded));
-  return seeded;
-}
-
-function saveUsers(users: (AppUser & { password: string })[]) {
-  localStorage.setItem(USERS_KEY, JSON.stringify(users));
-}
+const SESSION_KEY = "gws_session_id"; // store the user id
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AppUser | null>(null);
   const [ready, setReady] = useState(false);
+  const supabase = createClient();
 
   useEffect(() => {
-    const users = loadUsers();
-    const sessionEmail = localStorage.getItem(SESSION_KEY);
-    if (sessionEmail) {
-      const found = users.find((u) => u.email === sessionEmail);
-      if (found) {
-        const { password: _password, ...rest } = found;
-        setUser(rest);
+    async function loadSession() {
+      const sessionId = localStorage.getItem(SESSION_KEY);
+      if (sessionId) {
+        const { data, error } = await supabase.from("app_users").select("*").eq("id", sessionId).single();
+        if (data && !error) {
+          setUser({ id: data.id, fullName: data.full_name, phone: data.phone, role: data.role, createdAt: data.created_at });
+        } else {
+          localStorage.removeItem(SESSION_KEY);
+        }
       }
+      setReady(true);
     }
-    setReady(true);
-  }, []);
+    loadSession();
+  }, [supabase]);
 
-  const register = useCallback(
-    (data: { fullName: string; email: string; phone: string; password: string }) => {
-      const users = loadUsers();
-      if (users.some((u) => u.email.toLowerCase() === data.email.toLowerCase())) {
-        return { ok: false, error: "Bu email allaqachon ro'yxatdan o'tgan." };
+  const login = useCallback(async (fullName: string, phone: string, password?: string) => {
+    const cleanPhone = phone.replace(/\s+/g, '');
+    const isAdminLogin = cleanPhone === "+998977657180";
+    
+    if (isAdminLogin && password !== "GRANDWATCHSHOP") return { ok: false, error: "Parol noto'g'ri!" };
+
+    const { data: existing } = await supabase.from("app_users").select("*").eq("phone", cleanPhone).single();
+
+    if (existing) {
+      const userData: AppUser = { id: existing.id, fullName: existing.full_name, phone: existing.phone, role: existing.role, createdAt: existing.created_at };
+      if (existing.full_name !== fullName) {
+        await supabase.from("app_users").update({ full_name: fullName }).eq("id", existing.id);
+        userData.fullName = fullName;
       }
-      const newUser: AppUser & { password: string } = {
-        id: "u_" + Date.now(),
-        fullName: data.fullName,
-        email: data.email,
-        phone: data.phone,
-        role: "customer",
-        password: data.password,
-        createdAt: new Date().toISOString(),
-      };
-      const updated = [...users, newUser];
-      saveUsers(updated);
-      localStorage.setItem(SESSION_KEY, newUser.email);
-      const { password: _password, ...rest } = newUser;
-      setUser(rest);
+      if (isAdminLogin && existing.role !== 'admin') {
+        await supabase.from("app_users").update({ role: 'admin' }).eq("id", existing.id);
+        userData.role = 'admin';
+      }
+      setUser(userData);
+      localStorage.setItem(SESSION_KEY, userData.id);
       return { ok: true };
-    },
-    []
-  );
+    } else {
+      const { data: newUser, error: insertError } = await supabase.from("app_users").insert({
+          full_name: fullName, phone: cleanPhone, role: isAdminLogin ? 'admin' : 'user', password: password || null
+        }).select().single();
 
-  const login = useCallback((email: string, password: string) => {
-    const users = loadUsers();
-    const found = users.find(
-      (u) => u.email.toLowerCase() === email.toLowerCase() && u.password === password
-    );
-    if (!found) return { ok: false, error: "Email yoki parol noto'g'ri." };
-    localStorage.setItem(SESSION_KEY, found.email);
-    const { password: _password, ...rest } = found;
-    setUser(rest);
-    return { ok: true, role: found.role };
-  }, []);
+      if (insertError || !newUser) return { ok: false, error: "Tizimga kirishda xatolik yuz berdi." };
+      const userData: AppUser = { id: newUser.id, fullName: newUser.full_name, phone: newUser.phone, role: newUser.role, createdAt: newUser.created_at };
+      setUser(userData);
+      localStorage.setItem(SESSION_KEY, userData.id);
+      return { ok: true };
+    }
+  }, [supabase]);
 
   const logout = useCallback(() => {
     localStorage.removeItem(SESSION_KEY);
     setUser(null);
   }, []);
 
-  const updateProfile = useCallback((data: Partial<AppUser>) => {
-    setUser((prev) => {
-      if (!prev) return prev;
-      const updated = { ...prev, ...data };
-      const users = loadUsers();
-      const idx = users.findIndex((u) => u.email === prev.email);
-      if (idx >= 0) {
-        users[idx] = { ...users[idx], ...data };
-        saveUsers(users);
-        if (data.email) localStorage.setItem(SESSION_KEY, data.email);
-      }
-      return updated;
-    });
-  }, []);
+  const updateProfile = useCallback(async (data: Partial<AppUser>) => {
+    setUser((prev) => { if (!prev) return prev; return { ...prev, ...data }; });
+    if (user?.id) {
+      const updateData: any = {};
+      if (data.fullName) updateData.full_name = data.fullName;
+      if (data.phone) updateData.phone = data.phone;
+      if (Object.keys(updateData).length > 0) await supabase.from("app_users").update(updateData).eq("id", user.id);
+    }
+  }, [user, supabase]);
 
-  const isAdmin = !!user && ["moderator", "content_admin", "super_admin"].includes(user.role);
+  const isAdmin = !!user && ["admin", "super_admin"].includes(user.role);
 
   return (
-    <AuthContext.Provider value={{ user, ready, register, login, logout, updateProfile, isAdmin }}>
+    <AuthContext.Provider value={{ user, ready, login, logout, updateProfile, isAdmin }}>
       {children}
     </AuthContext.Provider>
   );

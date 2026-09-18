@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -10,18 +10,38 @@ import { useAuth } from "@/lib/auth";
 export default function LoginPage() {
   const { login } = useAuth();
   const router = useRouter();
-  const [email, setEmail] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [phone, setPhone] = useState("+998");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  function handleSubmit(e: React.FormEvent) {
+  const cleanPhone = phone.replace(/\s+/g, '');
+  const isAdminLogin = cleanPhone === "+998977657180";
+
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const res = login(email, password);
+    setError("");
+    
+    if (fullName.trim().length < 3) {
+      setError("Iltimos, ism-familiyangizni to'liq kiriting.");
+      return;
+    }
+    if (cleanPhone.length < 9) {
+      setError("Iltimos, to'g'ri telefon raqam kiriting.");
+      return;
+    }
+
+    setLoading(true);
+    const res = await login(fullName, phone, password);
+    setLoading(false);
+    
     if (!res.ok) {
       setError(res.error ?? "Xatolik yuz berdi.");
       return;
     }
-    if (res.role === "super_admin" || res.role === "moderator" || res.role === "content_admin") {
+    
+    if (isAdminLogin) {
       router.push("/admin");
     } else {
       router.push("/profile");
@@ -34,46 +54,58 @@ export default function LoginPage() {
       <div className="container-shop flex min-h-[70vh] items-center justify-center py-16">
         <div className="w-full max-w-md rounded-2xl border border-navy-100 p-8 shadow-sm">
           <h1 className="mb-1 font-serif text-2xl font-bold text-navy-900">Xush kelibsiz</h1>
-          <p className="mb-6 text-sm text-navy-900/50">Hisobingizga kiring</p>
+          <p className="mb-6 text-sm text-navy-900/50">Hisobingizga kiring yoki ro'yxatdan o'ting</p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="mb-1 block text-sm font-medium">Email</label>
+              <label className="mb-1 block text-sm font-medium">Ism va Familiya</label>
               <input
-                type="email"
+                type="text"
                 required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full rounded-lg border border-navy-100 px-3 py-2.5 text-sm"
-                placeholder="email@example.com"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                className="w-full rounded-lg border border-navy-100 px-3 py-2.5 text-sm outline-none focus:border-navy-900"
+                placeholder="Ali Valiyev"
               />
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium">Parol</label>
+              <label className="mb-1 block text-sm font-medium">Telefon raqam</label>
               <input
-                type="password"
+                type="tel"
                 required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full rounded-lg border border-navy-100 px-3 py-2.5 text-sm"
-                placeholder="••••••••"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                className="w-full rounded-lg border border-navy-100 px-3 py-2.5 text-sm outline-none focus:border-navy-900"
+                placeholder="+998 90 123 45 67"
               />
             </div>
+            
+            {isAdminLogin && (
+              <div className="animate-fade-in">
+                <label className="mb-1 block text-sm font-medium text-danger">Admin Paroli</label>
+                <input
+                  type="password"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full rounded-lg border border-danger/30 px-3 py-2.5 text-sm outline-none focus:border-danger"
+                  placeholder="••••••••"
+                />
+              </div>
+            )}
+            
             {error && <p className="text-sm text-danger">{error}</p>}
-            <button className="w-full rounded-lg bg-navy-900 py-3 text-sm font-medium text-white hover:bg-navy-800">
-              Kirish
+            
+            <button 
+              disabled={loading}
+              className="w-full rounded-lg bg-navy-900 py-3 text-sm font-medium text-white hover:bg-navy-800 disabled:opacity-50 transition"
+            >
+              {loading ? "Kutilmoqda..." : "Kirish"}
             </button>
           </form>
 
-          <p className="mt-6 text-center text-sm text-navy-900/60">
-            Hisobingiz yo'qmi?{" "}
-            <Link href="/register" className="font-medium text-navy-900 hover:text-gold-500">
-              Ro'yxatdan o'tish
-            </Link>
-          </p>
-
-          <div className="mt-4 rounded-lg bg-navy-50 p-3 text-xs text-navy-900/60">
-            Demo admin: <b>admin@grandwatch.uz</b> / <b>admin123</b> — <Link href="/admin" className="underline">/admin</Link> panelga kirish uchun.
+          <div className="mt-6 rounded-lg bg-navy-50 p-3 text-xs text-navy-900/60 leading-relaxed text-center">
+            Parol va email kiritish shart emas. Tizim sizni telefon raqamingiz orqali eslab qoladi.
           </div>
         </div>
       </div>

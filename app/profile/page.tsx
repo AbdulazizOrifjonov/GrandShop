@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -96,9 +96,9 @@ export default function ProfilePage() {
                       <input type="file" hidden accept="image/*" ref={fileInputRef} onChange={handleImageUpload} />
                       <div>
                         <p className="text-lg font-bold text-navy-900">{user.fullName}</p>
-                        <p className="text-sm text-navy-900/50">{user.email}</p>
+                        <p className="text-sm text-navy-900/50">{user.phone}</p>
                         <span className="mt-1 inline-block rounded-full bg-navy-50 px-3 py-1 text-xs text-navy-900/60">
-                          {user.role === 'super_admin' ? "Super Admin" : "Oddiy mijoz"}
+                          {user.role === "admin" || user.role === "super_admin" ? "Admin" : "Mijoz"}
                         </span>
                       </div>
                     </div>
@@ -320,3 +320,4 @@ export default function ProfilePage() {
     </div>
   );
 }
+
