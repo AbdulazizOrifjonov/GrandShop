@@ -23,8 +23,11 @@ export function MobileBottomNav() {
 
   return (
     <div 
-      className="fixed bottom-0 left-0 z-50 flex w-full pt-3 items-center justify-around border-t border-navy-100 bg-white md:hidden shadow-[0_-4px_10px_rgba(0,0,0,0.05)]"
-      style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 12px)' }}
+      className="fixed bottom-0 left-0 z-50 flex w-full items-center justify-around border-t border-navy-100 bg-white md:hidden shadow-[0_-4px_10px_rgba(0,0,0,0.05)]"
+      style={{ 
+        height: 'calc(65px + env(safe-area-inset-bottom))',
+        paddingBottom: 'env(safe-area-inset-bottom)'
+      }}
     >
       {navItems.map((item) => {
         const isActive = item.href === "/" ? pathname === "/" : pathname?.startsWith(item.href);
@@ -33,7 +36,7 @@ export function MobileBottomNav() {
             key={item.href}
             href={item.href}
             className={cn(
-              "relative flex flex-col items-center justify-center w-full h-full gap-1 transition-colors touch-target",
+              "flex flex-col items-center justify-center h-full w-full gap-[2px] transition-colors",
               isActive ? "text-navy-900" : "text-navy-900/40 active:text-navy-900"
             )}
             onClick={() => {
@@ -42,15 +45,15 @@ export function MobileBottomNav() {
               }
             }}
           >
-            <div className="relative flex items-center justify-center touch-target-lg">
+            <div className="relative flex items-center justify-center">
               <item.icon size={22} className={isActive && item.icon === Heart ? "fill-navy-900" : ""} />
               {!!item.badge && item.badge > 0 && (
-                <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-danger text-[9px] font-bold text-white shadow-sm ring-2 ring-white">
+                <span className="absolute -right-2 -top-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-danger text-[9px] font-bold text-white shadow-sm ring-2 ring-white">
                   {item.badge}
                 </span>
               )}
             </div>
-            <span className="text-[10px] font-semibold text-nowrap">{item.label}</span>
+            <span className="text-[10px] font-semibold text-nowrap mt-1">{item.label}</span>
           </Link>
         );
       })}
