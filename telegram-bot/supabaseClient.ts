@@ -1,7 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import crypto from "crypto";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://jcxunlvloemnhnsxjwrh.supabase.co";
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://jcxuntvtoemnhnsxjwrh.supabase.co";
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "sb_publishable_4zhII_zDXEp-yRK40kHyLQ_PLjaJ4dL";
 
 const supabase = createClient(supabaseUrl, supabaseKey);
