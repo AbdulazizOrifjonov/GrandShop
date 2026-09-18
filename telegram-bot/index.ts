@@ -104,11 +104,8 @@ bot.on(message("text"), async (ctx) => {
     if (inputState.type === 'category') {
       // The admin typed a new category name
       // We need to create it and move to brand selection
-      // Let's generate a category ID
-      const newCatId = `c${Date.now()}`;
-      
       // Save it to database/file
-      await createNewCategory(newCatId, text);
+      const newCatId = await createNewCategory(text);
       
       await ctx.reply(`✅ Yangi kategoriya yaratildi: ${text}\nEndi, bu mahsulot qaysi brendga tegishli?`, {
         parse_mode: "Markdown",
