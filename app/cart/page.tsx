@@ -88,13 +88,13 @@ export default function CartPage() {
                     </button>
                   </div>
                   
-                  <div className="flex items-center justify-between sm:justify-end gap-4 pl-[92px] sm:pl-0 border-t sm:border-0 border-navy-100 pt-3 sm:pt-0">
+                  <div className="flex w-full items-center justify-between sm:justify-end gap-4 border-t sm:border-0 border-navy-100 pt-3 sm:pt-0 mt-2 sm:mt-0">
                     <QuantitySelector
                       value={item.quantity}
                       onChange={(v) => updateQuantity(item.productId, v)}
                       max={product!.stock || 99}
                     />
-                    <div className="flex-1 sm:flex-none sm:w-32 text-right font-semibold text-navy-900 whitespace-nowrap">
+                    <div className="font-semibold text-navy-900 whitespace-nowrap text-right">
                       {formatSom(product!.price * item.quantity)}
                     </div>
                     {/* Desktop Trash */}
