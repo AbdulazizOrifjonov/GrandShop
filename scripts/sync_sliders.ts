@@ -54,6 +54,19 @@ const slides = [
 ];
 
 async function main() {
+  const catUpdates = [
+    { id: 'c1', image_url: 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?q=80&w=800&auto=format&fit=crop' },
+    { id: 'c2', image_url: 'https://images.unsplash.com/photo-1508057198894-247b23fe5ade?q=80&w=800&auto=format&fit=crop' },
+    { id: 'c3', image_url: 'https://images.unsplash.com/photo-1510017803434-a899398421b3?q=80&w=800&auto=format&fit=crop' },
+    { id: 'c5', image_url: 'https://images.unsplash.com/photo-1579586337278-3befd40fd17a?q=80&w=800&auto=format&fit=crop' },
+    { id: 'c7', image_url: 'https://images.unsplash.com/photo-1622434641406-a158123450f9?q=80&w=800&auto=format&fit=crop' }
+  ];
+
+  for (const c of catUpdates) {
+    const { error } = await supabase.from('categories').update({ image_url: c.image_url }).eq('id', c.id);
+    console.log('Category', c.id, error ? error.message : 'OK');
+  }
+
   const { data, error } = await supabase.from("sliders").upsert(slides).select();
   console.log("Upserted:", data?.length, "slides, error:", error);
 }

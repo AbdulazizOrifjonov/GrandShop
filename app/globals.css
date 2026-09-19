@@ -466,6 +466,23 @@ body, html {
   animation-play-state: paused;
 }
 
+.animate-marquee-cards {
+  display: flex;
+  width: max-content;
+  animation: marquee 35s linear infinite;
+  will-change: transform;
+}
+
+.animate-marquee-cards:hover {
+  animation-play-state: paused;
+}
+
+@media (max-width: 640px) {
+  .animate-marquee-cards {
+    animation-duration: 25s;
+  }
+}
+
 /* Hide Next.js dev tools overlay and dev indicators */
 nextjs-portal,
 [data-nextjs-toast],

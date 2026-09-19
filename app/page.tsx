@@ -20,12 +20,69 @@ const USPS = [
 import { useState, useMemo } from "react";
 import { LuxuryMarquee } from "@/components/shop/LuxuryMarquee";
 
+const DEFAULT_CATEGORIES = [
+  {
+    id: "c1",
+    name: "Erkaklar uchun",
+    slug: "erkaklar",
+    description: null,
+    image_url: "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?q=80&w=800&auto=format&fit=crop",
+    is_active: true,
+    product_count: 0,
+    created_at: "",
+  },
+  {
+    id: "c2",
+    name: "Ayollar uchun",
+    slug: "ayollar",
+    description: null,
+    image_url: "https://images.unsplash.com/photo-1508057198894-247b23fe5ade?q=80&w=800&auto=format&fit=crop",
+    is_active: true,
+    product_count: 0,
+    created_at: "",
+  },
+  {
+    id: "c3",
+    name: "Bolalar uchun",
+    slug: "bolalar",
+    description: null,
+    image_url: "https://images.unsplash.com/photo-1510017803434-a899398421b3?q=80&w=800&auto=format&fit=crop",
+    is_active: true,
+    product_count: 0,
+    created_at: "",
+  },
+  {
+    id: "c5",
+    name: "Smart soatlar",
+    slug: "smart-soatlar",
+    description: null,
+    image_url: "https://images.unsplash.com/photo-1579586337278-3befd40fd17a?q=80&w=800&auto=format&fit=crop",
+    is_active: true,
+    product_count: 0,
+    created_at: "",
+  },
+  {
+    id: "c7",
+    name: "Aksessuarlar",
+    slug: "aksessuarlar",
+    description: null,
+    image_url: "https://images.unsplash.com/photo-1622434641406-a158123450f9?q=80&w=800&auto=format&fit=crop",
+    is_active: true,
+    product_count: 0,
+    created_at: "",
+  },
+];
+
 export default function Home() {
   const { products, categories, sliders } = useStore();
   const [page, setPage] = useState(1);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
 
-  const activeCategories = categories.filter((c) => c.is_active).slice(0, 6);
+  const activeCategories = categories.filter((c) => c.is_active);
+  const displayCategories = activeCategories.length > 0 ? activeCategories : DEFAULT_CATEGORIES;
+  // Duplicate for seamless 0% -> -50% infinite marquee loop
+  const marqueeHalf = [...displayCategories, ...displayCategories];
+  const marqueeCategories = [...marqueeHalf, ...marqueeHalf];
   const saleProducts = products
     .filter((p) => p.is_active && (p.discount || (p.old_price && p.old_price > p.price) || p.is_new))
     .slice(0, 10);
@@ -67,14 +124,24 @@ export default function Home() {
         </div>
       </section>
 
-      <div className="container-shop py-10">
-        <SectionHeader title="Mashhur kategoriyalar" href="/products" />
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
-          {activeCategories.map((c) => (
-            <CategoryCard key={c.id} category={c} />
-          ))}
+      {/* Mashhur kategoriyalar - Horizontal Continuous Non-stop Marquee */}
+      <section className="py-8 bg-gradient-to-b from-white via-navy-50/25 to-white overflow-hidden border-b border-navy-100/60">
+        <div className="container-shop mb-3">
+          <SectionHeader title="Mashhur kategoriyalar" href="/products" />
         </div>
-      </div>
+        <div className="relative w-full overflow-hidden select-none py-1">
+          {/* Edge blur & gradient fade masks for smooth luxury transitions */}
+          <div className="pointer-events-none absolute inset-y-0 left-0 w-8 sm:w-24 bg-gradient-to-r from-white via-white/80 to-transparent z-10" />
+          <div className="pointer-events-none absolute inset-y-0 right-0 w-8 sm:w-24 bg-gradient-to-l from-white via-white/80 to-transparent z-10" />
+
+          {/* Running track moving continuously from right to left */}
+          <div className="flex animate-marquee-cards gap-4 sm:gap-5 px-4">
+            {marqueeCategories.map((c, idx) => (
+              <CategoryCard key={`${c.id}-${idx}`} category={c} />
+            ))}
+          </div>
+        </div>
+      </section>
 
       <div className="container-shop py-6">
         <SectionHeader title="Aksiya mahsulotlari" href="/products?sale=1" extra={<SaleCountdown />} />
