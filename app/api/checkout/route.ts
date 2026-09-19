@@ -16,16 +16,17 @@ function formatPrice(p: number) {
     .replace(/,/g, " ");
 }
 
-// Global navbat zanjiri: bir vaqtda bir nechta mijoz buyurtma berganda
-// xabarlar va rasmlar Telegram'ga ketma-ket, bir-biriga aralashmasdan tushishini ta'minlaydi
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+// Global navbat: bir vaqtning o'zida bir nechta mijoz buyurtma berganda
+// xabarlar va rasmlar Telegram'ga qat'iy ketma-ket, aralashmasdan tushishini ta'minlaydi
 let globalTelegramQueue: Promise<void> = Promise.resolve();
 
 function enqueueTelegramTask(task: () => Promise<void>): Promise<void> {
   const next = globalTelegramQueue.then(async () => {
     try {
       await task();
-      // Har bir buyurtma jo'natilgandan so'ng 250ms tanaffus (Telegram tartibi va API limiti uchun)
-      await new Promise((r) => setTimeout(r, 250));
+      await sleep(300); // Har bir buyurtma orasida Telegram limitlari uchun tanaffus
     } catch (e) {
       console.error("Telegram queue execution error:", e);
     }
@@ -128,66 +129,28 @@ export async function POST(req: Request) {
       return `${cleanOrigin}${cleanPath}`;
     }
 
-    // Har bir mahsulot qatori: nomi, soni, narxi, summasi va "Havola" linki
-    const numEmojis = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟"];
-    const orderLines = items
-      .map((item: any, idx: number) => {
-        const qty = Number(item.quantity) || 1;
-        const price = Number(item.price) || 0;
-        const itemTotal = price * qty;
+    // Har bir mahsulotni tayyorlash: o'zining rasmlari (1-3 ta) va o'zining single linki
+    const preparedItems = items.map((item: any) => {
+      const qty = Number(item.quantity) || 1;
+      const price = Number(item.price) || 0;
+      const itemTotal = price * qty;
 
-        let link = item.productUrl;
-        if (!link && item.slug) {
-          link = `${cleanOrigin}/products/${encodeURIComponent(item.slug)}`;
-        } else if (!link && item.id) {
-          link = `${cleanOrigin}/products/${encodeURIComponent(item.id)}`;
-        }
-        if (!link) {
-          link = cleanOrigin;
-        }
+      let link = item.productUrl;
+      if (!link && item.slug) {
+        link = `${cleanOrigin}/products/${encodeURIComponent(item.slug)}`;
+      } else if (!link && item.id) {
+        link = `${cleanOrigin}/products/${encodeURIComponent(item.id)}`;
+      }
+      if (!link) {
+        link = cleanOrigin;
+      }
 
-        const numLabel = numEmojis[idx] || `🔹 ${idx + 1}.`;
-
-        return (
-          `${numLabel} <b>${escapeHtml(item.name || item.product_name)}</b>\n` +
-          `   ▫️ Xarid soni: <b>${qty} dona</b>\n` +
-          `   ▫️ Donasi: <b>${formatPrice(price)} so'm</b>\n` +
-          `   ▫️ Jami: <b>${formatPrice(itemTotal)} so'm</b>\n` +
-          `   ▫️ Saytdagi sahifasi: <a href="${link}">🔗 Havola</a>`
-        );
-      })
-      .join("\n\n");
-
-    const text =
-      `╔══════════════════════════════════╗\n` +
-      `  ${badge} <b>YANGI BUYURTMA: #${escapeHtml(orderNumber)}</b>\n` +
-      `╚══════════════════════════════════╝\n\n` +
-      `👤 <b>Mijoz:</b> ${escapeHtml(data.fullName)}\n` +
-      `📞 <b>Telefon:</b> ${escapeHtml(data.phone)}\n` +
-      `📍 <b>Manzil:</b> ${escapeHtml(data.address)}\n` +
-      (data.note ? `📝 <b>Izoh:</b> ${escapeHtml(data.note)}\n` : "") +
-      (data.promoCode
-        ? `🎟 <b>Promokod:</b> <code>${escapeHtml(data.promoCode)}</code> (-${formatPrice(data.discount || 0)} so'm)\n`
-        : "") +
-      `\n📦 <b>XARID QILINGAN MAHSULOTLAR (${items.length} xil):</b>\n` +
-      `────────────────────────────────────\n` +
-      `${orderLines}\n` +
-      `────────────────────────────────────\n` +
-      (data.subtotal ? `💰 <b>Oraliq summa:</b> ${formatPrice(data.subtotal)} so'm\n` : "") +
-      (data.discount ? `🎟 <b>Chegirma:</b> -${formatPrice(data.discount)} so'm\n` : "") +
-      `🚚 <b>Yetkazib berish:</b> ${data.deliveryFee ? formatPrice(data.deliveryFee) + " so'm" : "Bepul"}\n` +
-      `💳 <b>JAMI TO'LOV:</b> <b>${formatPrice(data.total)} so'm</b>\n\n` +
-      `════════════════════════════════════\n` +
-      `🏁 ${badge} <b>#${escapeHtml(orderNumber)} — Buyurtma yakunlandi</b>\n` +
-      `🌐 <i>Grand Watch Shop | Rasmiy veb-sayt</i>`;
-
-    // Har bir mahsulotdan 1 tadan 3 tagacha rasm yig'ish (Telegram mediaGroup max: 10 ta rasm)
-    const allImages: string[] = [];
-    for (const item of items) {
+      // Faqat shu mahsulotning rasmlari (1 tadan ko'pi bilan 3 tagacha)
       const itemImgs: string[] = [];
       if (Array.isArray(item.images) && item.images.length > 0) {
         for (const im of item.images) {
-          const abs = getAbsoluteImageUrl(im);
+          const rawUrl = typeof im === "string" ? im : im?.url;
+          const abs = getAbsoluteImageUrl(rawUrl);
           if (abs && !itemImgs.includes(abs)) itemImgs.push(abs);
         }
       }
@@ -195,119 +158,176 @@ export async function POST(req: Request) {
         const abs = getAbsoluteImageUrl(item.image || item.product_image);
         if (abs && !itemImgs.includes(abs)) itemImgs.push(abs);
       }
-      // Har bir mahsulotdan 3 tagacha rasm:
-      const top3 = itemImgs.slice(0, 3);
-      for (const u of top3) {
-        if (!allImages.includes(u)) {
-          allImages.push(u);
-        }
-      }
-    }
 
-    const validImages = allImages.slice(0, 10);
+      const limitedImages = itemImgs.slice(0, 3);
 
-    // Barcha yuboriladigan manzillar: kanal va adminlar
+      return {
+        name: item.name || item.product_name || "Mahsulot",
+        quantity: qty,
+        price,
+        total: itemTotal,
+        link,
+        images: limitedImages,
+      };
+    });
+
+    const totalItemCount = preparedItems.reduce((acc: number, it: any) => acc + it.quantity, 0);
+
+    // 1. Asosiy kvitansiya matni (Header)
+    const headerText =
+      `╔══════════════════════════════════════╗\n` +
+      `  ${badge} <b>YANGI BUYURTMA: #${escapeHtml(orderNumber)}</b>\n` +
+      `╚══════════════════════════════════════╝\n\n` +
+      `👤 <b>Mijoz:</b> ${escapeHtml(data.fullName)}\n` +
+      `📞 <b>Telefon:</b> ${escapeHtml(data.phone)}\n` +
+      `📍 <b>Manzil:</b> ${escapeHtml(data.address)}\n` +
+      (data.note ? `📝 <b>Izoh:</b> ${escapeHtml(data.note)}\n` : "") +
+      (data.promoCode
+        ? `🎟 <b>Promokod:</b> <code>${escapeHtml(data.promoCode)}</code> (-${formatPrice(data.discount || 0)} so'm)\n`
+        : "") +
+      `\n📦 <b>Buyurtma tarkibi:</b> ${preparedItems.length} xil soat (${totalItemCount} dona)\n` +
+      (data.subtotal ? `💰 <b>Oraliq summa:</b> ${formatPrice(data.subtotal)} so'm\n` : "") +
+      (data.discount ? `🎟 <b>Chegirma:</b> -${formatPrice(data.discount)} so'm\n` : "") +
+      `🚚 <b>Yetkazib berish:</b> ${data.deliveryFee ? formatPrice(data.deliveryFee) + " so'm" : "Bepul"}\n` +
+      `💳 <b>JAMI TO'LOV:</b> <b>${formatPrice(data.total)} so'm</b>\n\n` +
+      `──────────────────────────────────────\n` +
+      `👇 <b>Har bir mahsulot rasmlari va ma'lumotlari alohida:</b>`;
+
+    // 3. Buyurtma yakuni (Footer)
+    const footerText =
+      `══════════════════════════════════════\n` +
+      `🏁 ${badge} <b>#${escapeHtml(orderNumber)} — Buyurtma to'liq yakunlandi</b>\n` +
+      `💳 <b>JAMI: ${formatPrice(data.total)} so'm</b> (${preparedItems.length} xil mahsulot)\n` +
+      `🌐 <i>Grand Watch Shop | Rasmiy veb-sayt</i>\n` +
+      `══════════════════════════════════════`;
+
+    // Barcha qabul qiluvchilar: kanal va adminlar
     const recipients = Array.from(new Set([channelId, admin1, admin2].filter(Boolean)));
 
-    async function sendToChat(chatId: string) {
-      // 1. Agar bir nechta rasm bo'lsa (albom / sendMediaGroup)
-      if (validImages.length > 1) {
-        try {
-          const media = validImages.map((url, index) => ({
-            type: "photo",
-            media: url,
-            ...(index === 0 && text.length <= 1024
-              ? { caption: text, parse_mode: "HTML" }
-              : {}),
-          }));
-
-          const res = await fetch(`https://api.telegram.org/bot${token}/sendMediaGroup`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              chat_id: chatId,
-              media,
-            }),
-          });
-          const resJson = await res.json();
-          if (resJson.ok) {
-            if (text.length > 1024) {
-              await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  chat_id: chatId,
-                  text,
-                  parse_mode: "HTML",
-                }),
-              });
-            }
-            return true;
-          } else {
-            console.warn(`sendMediaGroup failed for ${chatId}:`, resJson.description);
-          }
-        } catch (e) {
-          console.error(`sendMediaGroup error for ${chatId}:`, e);
-        }
-      }
-
-      // 2. Agar 1 ta rasm bo'lsa (yoki mediaGroup o'xshamasa) -> sendPhoto
-      if (validImages.length >= 1) {
-        try {
-          const photoRes = await fetch(`https://api.telegram.org/bot${token}/sendPhoto`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              chat_id: chatId,
-              photo: validImages[0],
-              caption: text.length <= 1024 ? text : text.slice(0, 1020) + "...",
-              parse_mode: "HTML",
-            }),
-          });
-          const photoJson = await photoRes.json();
-          if (photoJson.ok) {
-            if (text.length > 1024) {
-              await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  chat_id: chatId,
-                  text,
-                  parse_mode: "HTML",
-                }),
-              });
-            }
-            return true;
-          } else {
-            console.warn(`sendPhoto failed for ${chatId}:`, photoJson.description);
-          }
-        } catch (e) {
-          console.error(`sendPhoto error for ${chatId}:`, e);
-        }
-      }
-
-      // 3. Rasm bo'lmasa yoki rasm yuklash muvaffaqiyatsiz bo'lsa -> sendMessage
+    async function sendOrderToChat(chatId: string) {
+      // 1. Asosiy kvitansiyani yuborish
       try {
-        const msgRes = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+        await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             chat_id: chatId,
-            text,
+            text: headerText,
             parse_mode: "HTML",
           }),
         });
-        const msgJson = await msgRes.json();
-        return msgJson.ok;
-      } catch (e) {
-        console.error(`sendMessage error for ${chatId}:`, e);
-        return false;
+        await sleep(150);
+      } catch (err) {
+        console.error(`Header send error to ${chatId}:`, err);
+      }
+
+      // 2. Har bir mahsulotni ALOHIDA-ALOHIDA (o'zining 1-3 ta rasmi bilan) yuborish
+      for (let idx = 0; idx < preparedItems.length; idx++) {
+        const item = preparedItems[idx];
+        const itemCaption =
+          `${badge} <b>#${escapeHtml(orderNumber)} | ${idx + 1}-MAHSULOT (${idx + 1}/${preparedItems.length})</b>\n\n` +
+          `🏷 <b>${escapeHtml(item.name)}</b>\n` +
+          `▫️ Xarid soni: <b>${item.quantity} dona</b>\n` +
+          `▫️ Donasi narxi: <b>${formatPrice(item.price)} so'm</b>\n` +
+          `▫️ Jami summasi: <b>${formatPrice(item.total)} so'm</b>\n` +
+          `▫️ Saytdagi sahifasi: <a href="${item.link}">🔗 Havola</a>`;
+
+        const images = item.images;
+        let sent = false;
+
+        // A) Agar mahsulotda 2 yoki 3 ta rasm bo'lsa -> sendMediaGroup (albom)
+        if (images.length > 1) {
+          try {
+            const media = images.map((url: string, imgIdx: number) => ({
+              type: "photo",
+              media: url,
+              ...(imgIdx === 0 ? { caption: itemCaption, parse_mode: "HTML" } : {}),
+            }));
+
+            const res = await fetch(`https://api.telegram.org/bot${token}/sendMediaGroup`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                chat_id: chatId,
+                media,
+              }),
+            });
+            const resJson = await res.json();
+            if (resJson.ok) {
+              sent = true;
+            } else {
+              console.warn(`sendMediaGroup failed for item ${idx + 1}:`, resJson.description);
+            }
+          } catch (e) {
+            console.error(`sendMediaGroup error for item ${idx + 1}:`, e);
+          }
+        }
+
+        // B) Agar 1 ta rasm bo'lsa yoki mediaGroup xatolik bersa -> sendPhoto
+        if (!sent && images.length >= 1) {
+          try {
+            const photoRes = await fetch(`https://api.telegram.org/bot${token}/sendPhoto`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                chat_id: chatId,
+                photo: images[0],
+                caption: itemCaption,
+                parse_mode: "HTML",
+              }),
+            });
+            const photoJson = await photoRes.json();
+            if (photoJson.ok) {
+              sent = true;
+            } else {
+              console.warn(`sendPhoto failed for item ${idx + 1}:`, photoJson.description);
+            }
+          } catch (e) {
+            console.error(`sendPhoto error for item ${idx + 1}:`, e);
+          }
+        }
+
+        // C) Agar rasm bo'lmasa yoki rasm yuklanmasa -> sendMessage
+        if (!sent) {
+          try {
+            await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                chat_id: chatId,
+                text: itemCaption,
+                parse_mode: "HTML",
+              }),
+            });
+          } catch (e) {
+            console.error(`sendMessage error for item ${idx + 1}:`, e);
+          }
+        }
+
+        await sleep(150);
+      }
+
+      // 3. Agar 1 tadan ko'p mahsulot bo'lsa, yakunlovchi chegarani yuborish
+      if (preparedItems.length > 1) {
+        try {
+          await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              chat_id: chatId,
+              text: footerText,
+              parse_mode: "HTML",
+            }),
+          });
+        } catch (e) {
+          console.error(`Footer send error to ${chatId}:`, e);
+        }
       }
     }
 
-    // Navbat orqali ketma-ket yuborish: buyurtmalar aralashib ketmasligi kafolatlanadi
+    // Navbat orqali ketma-ket yuborish: mijozlar buyurtmasi bir-biriga hecham aralashmaydi
     await enqueueTelegramTask(async () => {
-      await Promise.allSettled(recipients.map((chatId) => sendToChat(chatId as string)));
+      await Promise.allSettled(recipients.map((chatId) => sendOrderToChat(chatId as string)));
     });
 
     return NextResponse.json({ success: true, orderId, orderNumber });
