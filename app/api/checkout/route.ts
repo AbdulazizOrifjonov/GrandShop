@@ -16,6 +16,24 @@ function formatPrice(p: number) {
     .replace(/,/g, " ");
 }
 
+// Global navbat zanjiri: bir vaqtda bir nechta mijoz buyurtma berganda
+// xabarlar va rasmlar Telegram'ga ketma-ket, bir-biriga aralashmasdan tushishini ta'minlaydi
+let globalTelegramQueue: Promise<void> = Promise.resolve();
+
+function enqueueTelegramTask(task: () => Promise<void>): Promise<void> {
+  const next = globalTelegramQueue.then(async () => {
+    try {
+      await task();
+      // Har bir buyurtma jo'natilgandan so'ng 250ms tanaffus (Telegram tartibi va API limiti uchun)
+      await new Promise((r) => setTimeout(r, 250));
+    } catch (e) {
+      console.error("Telegram queue execution error:", e);
+    }
+  });
+  globalTelegramQueue = next;
+  return next;
+}
+
 export async function POST(req: Request) {
   try {
     const data = await req.json();
@@ -35,6 +53,13 @@ export async function POST(req: Request) {
       data.orderNumber || `ORD-${Math.floor(100000 + Math.random() * 900000)}`;
 
     const items = data.items || [];
+
+    // Har bir buyurtmaga unikal rangli nishon (badge)
+    const BADGES = ["🟢", "🔵", "🟣", "🟠", "💎", "⭐", "🔶"];
+    const badgeIndex = Math.abs(
+      orderNumber.split("").reduce((acc: number, c: string) => acc + c.charCodeAt(0), 0)
+    ) % BADGES.length;
+    const badge = BADGES[badgeIndex];
 
     // 1. Supabase-ga server-side buyurtmani saqlash (zaxira va kafolat)
     try {
@@ -91,34 +116,52 @@ export async function POST(req: Request) {
       rawOrigin = "https://grand-watch-shop.vercel.app";
     }
 
+    const cleanOrigin = rawOrigin.replace(/\/$/, "");
+
     function getAbsoluteImageUrl(img: string | null | undefined): string | null {
       if (!img) return null;
       const trimmed = img.trim();
       if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
         return trimmed;
       }
-      const cleanOrigin = rawOrigin.replace(/\/$/, "");
       const cleanPath = trimmed.startsWith("/") ? trimmed : `/${trimmed}`;
       return `${cleanOrigin}${cleanPath}`;
     }
 
-    // Har bir mahsulot qatori: nomi, soni, narxi, summasi
+    // Har bir mahsulot qatori: nomi, soni, narxi, summasi va "Havola" linki
+    const numEmojis = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟"];
     const orderLines = items
       .map((item: any, idx: number) => {
         const qty = Number(item.quantity) || 1;
         const price = Number(item.price) || 0;
         const itemTotal = price * qty;
+
+        let link = item.productUrl;
+        if (!link && item.slug) {
+          link = `${cleanOrigin}/products/${encodeURIComponent(item.slug)}`;
+        } else if (!link && item.id) {
+          link = `${cleanOrigin}/products/${encodeURIComponent(item.id)}`;
+        }
+        if (!link) {
+          link = cleanOrigin;
+        }
+
+        const numLabel = numEmojis[idx] || `🔹 ${idx + 1}.`;
+
         return (
-          `<b>${idx + 1}. ${escapeHtml(item.name || item.product_name)}</b>\n` +
-          `   ▫️ Soni: <b>${qty} dona</b>\n` +
+          `${numLabel} <b>${escapeHtml(item.name || item.product_name)}</b>\n` +
+          `   ▫️ Xarid soni: <b>${qty} dona</b>\n` +
           `   ▫️ Donasi: <b>${formatPrice(price)} so'm</b>\n` +
-          `   ▫️ Summasi: <b>${formatPrice(itemTotal)} so'm</b>`
+          `   ▫️ Jami: <b>${formatPrice(itemTotal)} so'm</b>\n` +
+          `   ▫️ Saytdagi sahifasi: <a href="${link}">🔗 Havola</a>`
         );
       })
       .join("\n\n");
 
     const text =
-      `🛍 <b>YANGI BUYURTMA! #${escapeHtml(orderNumber)}</b>\n\n` +
+      `╔══════════════════════════════════╗\n` +
+      `  ${badge} <b>YANGI BUYURTMA: #${escapeHtml(orderNumber)}</b>\n` +
+      `╚══════════════════════════════════╝\n\n` +
       `👤 <b>Mijoz:</b> ${escapeHtml(data.fullName)}\n` +
       `📞 <b>Telefon:</b> ${escapeHtml(data.phone)}\n` +
       `📍 <b>Manzil:</b> ${escapeHtml(data.address)}\n` +
@@ -126,20 +169,42 @@ export async function POST(req: Request) {
       (data.promoCode
         ? `🎟 <b>Promokod:</b> <code>${escapeHtml(data.promoCode)}</code> (-${formatPrice(data.discount || 0)} so'm)\n`
         : "") +
-      `\n📦 <b>Buyurtma qilingan mahsulotlar:</b>\n` +
-      `━━━━━━━━━━━━━━━━━━━━\n` +
+      `\n📦 <b>XARID QILINGAN MAHSULOTLAR (${items.length} xil):</b>\n` +
+      `────────────────────────────────────\n` +
       `${orderLines}\n` +
-      `━━━━━━━━━━━━━━━━━━━━\n` +
+      `────────────────────────────────────\n` +
       (data.subtotal ? `💰 <b>Oraliq summa:</b> ${formatPrice(data.subtotal)} so'm\n` : "") +
       (data.discount ? `🎟 <b>Chegirma:</b> -${formatPrice(data.discount)} so'm\n` : "") +
       `🚚 <b>Yetkazib berish:</b> ${data.deliveryFee ? formatPrice(data.deliveryFee) + " so'm" : "Bepul"}\n` +
       `💳 <b>JAMI TO'LOV:</b> <b>${formatPrice(data.total)} so'm</b>\n\n` +
-      `🌐 <i>Grand Watch Shop | Veb-saytdan xarid</i>`;
+      `════════════════════════════════════\n` +
+      `🏁 ${badge} <b>#${escapeHtml(orderNumber)} — Buyurtma yakunlandi</b>\n` +
+      `🌐 <i>Grand Watch Shop | Rasmiy veb-sayt</i>`;
 
-    // Haqiqiy rasm havolalarini yig'ish
-    const validImages: string[] = items
-      .map((i: any) => getAbsoluteImageUrl(i.image || i.product_image))
-      .filter((url: string | null): url is string => Boolean(url && url.startsWith("http")));
+    // Har bir mahsulotdan 1 tadan 3 tagacha rasm yig'ish (Telegram mediaGroup max: 10 ta rasm)
+    const allImages: string[] = [];
+    for (const item of items) {
+      const itemImgs: string[] = [];
+      if (Array.isArray(item.images) && item.images.length > 0) {
+        for (const im of item.images) {
+          const abs = getAbsoluteImageUrl(im);
+          if (abs && !itemImgs.includes(abs)) itemImgs.push(abs);
+        }
+      }
+      if (itemImgs.length === 0 && (item.image || item.product_image)) {
+        const abs = getAbsoluteImageUrl(item.image || item.product_image);
+        if (abs && !itemImgs.includes(abs)) itemImgs.push(abs);
+      }
+      // Har bir mahsulotdan 3 tagacha rasm:
+      const top3 = itemImgs.slice(0, 3);
+      for (const u of top3) {
+        if (!allImages.includes(u)) {
+          allImages.push(u);
+        }
+      }
+    }
+
+    const validImages = allImages.slice(0, 10);
 
     // Barcha yuboriladigan manzillar: kanal va adminlar
     const recipients = Array.from(new Set([channelId, admin1, admin2].filter(Boolean)));
@@ -148,7 +213,7 @@ export async function POST(req: Request) {
       // 1. Agar bir nechta rasm bo'lsa (albom / sendMediaGroup)
       if (validImages.length > 1) {
         try {
-          const media = validImages.slice(0, 10).map((url, index) => ({
+          const media = validImages.map((url, index) => ({
             type: "photo",
             media: url,
             ...(index === 0 && text.length <= 1024
@@ -240,8 +305,10 @@ export async function POST(req: Request) {
       }
     }
 
-    // Barcha qabul qiluvchilarga (kanal va adminlarga) yuborish
-    await Promise.allSettled(recipients.map((chatId) => sendToChat(chatId as string)));
+    // Navbat orqali ketma-ket yuborish: buyurtmalar aralashib ketmasligi kafolatlanadi
+    await enqueueTelegramTask(async () => {
+      await Promise.allSettled(recipients.map((chatId) => sendToChat(chatId as string)));
+    });
 
     return NextResponse.json({ success: true, orderId, orderNumber });
   } catch (err) {

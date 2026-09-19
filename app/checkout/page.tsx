@@ -69,14 +69,39 @@ export default function CheckoutPage() {
       return;
     }
     
-    const itemsData = detailed.map((d) => ({
-      id: d.product!.id,
-      name: d.product!.name,
-      image: d.product!.image || (d.product!.images && d.product!.images[0]) || null,
-      quantity: d.item.quantity,
-      price: d.product!.price,
-      slug: d.product!.slug,
-    }));
+    const siteOrigin =
+      typeof window !== "undefined" && window.location.origin
+        ? window.location.origin
+        : "https://grand-watch-shop.vercel.app";
+
+    const itemsData = detailed.map((d) => {
+      const prod = d.product!;
+      const prodImages: string[] = [];
+      if (prod.image) prodImages.push(prod.image);
+      if (Array.isArray(prod.images)) {
+        for (const im of prod.images) {
+          const u = typeof im === "string" ? im : (im as any)?.url;
+          if (u && !prodImages.includes(u)) {
+            prodImages.push(u);
+          }
+        }
+      }
+      // Har bir mahsulot uchun kamida 1 ta, ko'pi bilan 3 tagacha rasm
+      const limitedImages = prodImages.slice(0, 3);
+      const slug = prod.slug || prod.id;
+      const productUrl = `${siteOrigin}/products/${encodeURIComponent(slug)}`;
+
+      return {
+        id: prod.id,
+        name: prod.name,
+        image: prod.image || limitedImages[0] || null,
+        images: limitedImages,
+        quantity: d.item.quantity,
+        price: prod.price,
+        slug: prod.slug,
+        productUrl,
+      };
+    });
 
     const orderNum = `ORD-${Math.floor(100000 + Math.random() * 900000)}`;
     const orderId =
