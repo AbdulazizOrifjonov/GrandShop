@@ -99,14 +99,14 @@ export function ProductCard({
   return (
     <div
       className={cn(
-        "group relative rounded-xl sm:rounded-2xl border border-navy-100/90 bg-white p-[3px] sm:p-3 transition-all duration-300 hover:shadow-xl hover:border-navy-200 card-touch",
+        "group relative rounded-xl sm:rounded-2xl border border-navy-100/90 bg-white p-[3px] sm:p-3 transition-all duration-300 hover:shadow-xl hover:border-navy-200",
         variant === "full" ? "flex flex-row gap-3 sm:gap-4 p-2 sm:p-3" : "flex h-full flex-col"
       )}
     >
       <div
         className={cn(
           "relative overflow-hidden rounded-lg sm:rounded-xl bg-navy-50/70 shrink-0",
-          variant === "full" ? "h-40 w-40 md:h-48 md:w-48" : "mb-1 sm:mb-2.5 aspect-[4/5] w-full"
+          variant === "full" ? "h-40 w-40 md:h-48 md:w-48" : "mb-[3px] sm:mb-2.5 aspect-[4/5] w-full"
         )}
       >
         {(discount > 0 || product.is_new) && (
@@ -197,7 +197,7 @@ export function ProductCard({
         )}
       </div>
 
-      <div className="flex flex-1 flex-col px-1 sm:px-0">
+      <div className="flex flex-1 flex-col px-[3px] sm:px-0">
         {product.brand && (
           <span className="text-[9px] sm:text-[10px] font-extrabold uppercase tracking-wider text-navy-900/55 mb-0.5 block font-mono leading-none">
             {product.brand}
@@ -215,7 +215,7 @@ export function ProductCard({
           </p>
         )}
 
-        <div className={cn("mt-auto pt-1.5 sm:pt-3", variant === "full" ? "flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3" : "")}>
+        <div className={cn("mt-auto pt-1 sm:pt-3", variant === "full" ? "flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3" : "")}>
           <div className={cn("mb-1 sm:mb-2", variant === "full" ? "mb-0" : "")}>
             <div className="text-[13px] sm:text-[15px] md:text-lg font-bold text-navy-900 leading-tight">
               {formatSom(product.price)}
