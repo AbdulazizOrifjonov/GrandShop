@@ -63,27 +63,13 @@ bot.on(message("photo"), async (ctx) => {
   }
 });
 
-bot.on(message("text"), async (ctx) => {
-  if (ctx.message.text.startsWith("/")) return;
-  const mediaGroupId = \	ext_\\;
-  const group: PendingProduct = {
-    mediaGroupId,
-    messageId: ctx.message.message_id,
-    text: ctx.message.text,
-    photoIds: [],
-    parsed: null,
-  };
-  pendingGroups.set(mediaGroupId, group);
-  await processMediaGroup(ctx, mediaGroupId);
-});
-
 async function processMediaGroup(ctx: Context, mediaGroupId: string) {
   const group = pendingGroups.get(mediaGroupId);
   if (!group) return;
   pendingGroups.delete(mediaGroupId);
   
-  if (!group.text.trim()) {
-    await ctx.reply("❌ Xatolik: Matn yo'q.");
+  if (!group.text.trim() || group.photoIds.length === 0) {
+    await ctx.reply("❌ Xatolik: Matn yoki rasm yetishmayapti. O'tkazib yuborildi.");
     return;
   }
 
@@ -113,12 +99,10 @@ async function processMediaGroup(ctx: Context, mediaGroupId: string) {
       if (publicUrl) uploadedUrls.push(publicUrl);
     }
 
-    // Auto assign category (Erkaklar = c1, Ayollar = c2)
     let catId = "c1"; 
     const lowerText = group.text.toLowerCase();
     if (lowerText.includes("ayollar") || lowerText.includes("zhenskiy")) catId = "c2";
 
-    // Extract brand from name
     let finalBrand = null;
     const knownBrands = ["Rolex", "Casio", "Tissot", "Seiko", "Orient", "Hublot", "Patek Philippe", "Rado", "Longines", "Omega", "Cartier"];
     for (const b of knownBrands) {
