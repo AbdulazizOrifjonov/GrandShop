@@ -320,14 +320,18 @@ body, html {
 
 @media (max-width: 1024px) {
   .admin-sidebar-width {
-    width: 100%;
+    width: 280px;
+    max-width: 85vw;
     position: fixed;
+    top: 0;
+    bottom: 0;
     left: -100%;
     transition: left 0.3s ease;
     z-index: 50;
   }
   .admin-sidebar-width.open {
     left: 0;
+    box-shadow: 10px 0 30px -5px rgba(0, 0, 0, 0.5);
   }
 }
 

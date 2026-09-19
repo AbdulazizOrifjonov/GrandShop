@@ -15,11 +15,11 @@ import {
   ShieldCheck,
   Settings,
   ExternalLink,
-  Menu,
   X,
 } from "lucide-react";
 import { Logo } from "@/components/shop/Logo";
 import { cn } from "@/lib/utils";
+import { useAdminNav } from "@/components/admin/AdminNavContext";
 
 const NAV = [
   { href: "/admin", label: "Boshqaruv paneli", icon: LayoutDashboard },
@@ -36,21 +36,13 @@ const NAV = [
 
 export function AdminSidebar() {
   const pathname = usePathname();
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const { mobileOpen, setMobileOpen } = useAdminNav();
 
   return (
     <>
-      <button
-        className="lg:hidden fixed top-4 left-4 z-50 flex h-10 w-10 items-center justify-center rounded-lg bg-navy-950 text-white shadow-lg touch-target"
-        onClick={() => setMobileOpen(true)}
-        aria-label="Admin menyusini ochish"
-      >
-        <Menu size={22} />
-      </button>
-
       {mobileOpen && (
         <div
-          className="lg:hidden fixed inset-0 z-40 bg-black/50"
+          className="lg:hidden fixed inset-0 z-40 bg-black/60 backdrop-blur-xs transition-opacity"
           onClick={() => setMobileOpen(false)}
           aria-hidden="true"
         />
