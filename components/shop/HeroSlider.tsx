@@ -8,9 +8,9 @@ import { Slider } from "@/types/database";
 
 const DEFAULT_SLIDES: Slider[] = [
   {
-    id: "def-1",
-    title: "Eksklyuziv va Nafis Soatlar",
-    subtitle: "Dunyoning yetakchi brendlaridan original mexanik va kvars soatlar. Har bir soniyangiz qadrli.",
+    id: "s1",
+    title: "Rolex Oyster Perpetual",
+    subtitle: "Dunyoning eng mashhur va nufuzli Shveysariya soatlari. Original sifat va 12 oy rasmiy kafolat.",
     image_url: "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?q=80&w=1920&auto=format&fit=crop",
     button_text: "Katalogni ko'rish",
     link: "/products",
@@ -19,10 +19,10 @@ const DEFAULT_SLIDES: Slider[] = [
     created_at: new Date().toISOString(),
   },
   {
-    id: "def-2",
-    title: "Rolex & Audemars Piguet",
-    subtitle: "O'zbekiston bo'ylab 1 kunda bepul yetkazib berish va 12 oylik rasmiy kafolat.",
-    image_url: "https://images.unsplash.com/photo-1547996160-71dfabb1a756?q=80&w=1920&auto=format&fit=crop",
+    id: "s2",
+    title: "Audemars Piguet Royal Oak",
+    subtitle: "O'zgacha geometrik luks dizayn va avtomatik mexanizm. Har bir erkak orzusidagi hashamat.",
+    image_url: "https://images.unsplash.com/photo-1524805444758-089113d48a6d?q=80&w=1920&auto=format&fit=crop",
     button_text: "Erkaklar soatlari",
     link: "/products?cat=erkaklar",
     sort_order: 2,
@@ -30,13 +30,35 @@ const DEFAULT_SLIDES: Slider[] = [
     created_at: new Date().toISOString(),
   },
   {
-    id: "def-3",
-    title: "Kuzgi Chegirmalar Mavsumi",
-    subtitle: "Tanlangan barcha modellarga 30% gacha maxsus chegirmalar va sovg'alar.",
+    id: "s3",
+    title: "Patek Philippe & Cartier",
+    subtitle: "Shveysariya an'analari, aristokratik nafislik va mukammal aniqlik uyg'unligi.",
+    image_url: "https://images.unsplash.com/photo-1524592094714-0f0654e20314?q=80&w=1920&auto=format&fit=crop",
+    button_text: "Kolleksiyani ko'rish",
+    link: "/products",
+    sort_order: 3,
+    is_active: true,
+    created_at: new Date().toISOString(),
+  },
+  {
+    id: "s4",
+    title: "Hublot Big Bang Series",
+    subtitle: "Innovatsion keramika, titan korpus va xronograf funksiyalari. Jasur va zamonaviy obraz.",
+    image_url: "https://images.unsplash.com/photo-1587836374828-4dbafa94cf0e?q=80&w=1920&auto=format&fit=crop",
+    button_text: "Brend soatlari",
+    link: "/products",
+    sort_order: 4,
+    is_active: true,
+    created_at: new Date().toISOString(),
+  },
+  {
+    id: "s5",
+    title: "Tissot & Maxsus Chegirmalar",
+    subtitle: "O'zbekiston bo'ylab 1 kunda bepul yetkazib berish. 30% gacha maxsus mavsumiy chegirmalar.",
     image_url: "https://images.unsplash.com/photo-1509042239860-f550ce710b93?q=80&w=1920&auto=format&fit=crop",
     button_text: "Aksiyalarni ko'rish",
     link: "/products?sale=1",
-    sort_order: 3,
+    sort_order: 5,
     is_active: true,
     created_at: new Date().toISOString(),
   },
@@ -79,7 +101,7 @@ export function HeroSlider({ sliders }: { sliders: Slider[] }) {
 
   return (
     <section 
-      className="relative w-full overflow-hidden bg-navy-950 text-white min-h-[400px] sm:min-h-[480px] md:min-h-[520px] lg:min-h-[580px] h-[58vh] max-h-[640px] flex items-center select-none"
+      className="relative w-full overflow-hidden bg-navy-950 text-white min-h-[290px] sm:min-h-[350px] md:min-h-[400px] lg:min-h-[440px] h-[40vh] sm:h-[46vh] max-h-[460px] flex items-center select-none"
       onTouchStart={onTouchStart}
       onTouchMove={onTouchMove}
       onTouchEnd={onTouchEnd}
@@ -103,60 +125,60 @@ export function HeroSlider({ sliders }: { sliders: Slider[] }) {
           {/* Dark Luxury Gradient Overlays */}
           <div className="absolute inset-0 bg-gradient-to-t from-navy-950 via-navy-950/60 to-transparent sm:bg-gradient-to-r sm:from-navy-950/95 sm:via-navy-950/70 sm:to-transparent" />
 
-          <div className="container-shop relative flex h-full flex-col justify-center gap-3 sm:gap-4 py-12">
-            <div className="inline-flex items-center gap-2 rounded-full bg-gold-500/20 border border-gold-400/30 px-3 py-1 text-[10px] sm:text-xs font-bold uppercase tracking-widest text-gold-400 w-fit backdrop-blur-xs">
-              <Sparkles size={12} className="text-gold-400" />
+          <div className="container-shop relative flex h-full flex-col justify-center gap-2.5 sm:gap-3 py-6 sm:py-10">
+            <div className="inline-flex items-center gap-1.5 rounded-full bg-gold-500/20 border border-gold-400/30 px-2.5 py-0.5 text-[9px] sm:text-[11px] font-bold uppercase tracking-widest text-gold-400 w-fit backdrop-blur-xs">
+              <Sparkles size={11} className="text-gold-400" />
               <span>GRAND WATCH COLLECTION</span>
             </div>
 
-            <h1 className="max-w-xl font-serif text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight tracking-tight text-white drop-shadow-md">
+            <h1 className="max-w-xl font-serif text-xl sm:text-3xl md:text-4xl lg:text-5xl font-bold leading-tight tracking-tight text-white drop-shadow-md">
               {slide.title}
             </h1>
 
             {slide.subtitle && (
-              <p className="max-w-md text-xs sm:text-sm md:text-base text-white/80 leading-relaxed drop-shadow">
+              <p className="max-w-md text-[11px] sm:text-xs md:text-sm text-white/80 leading-relaxed drop-shadow line-clamp-2 sm:line-clamp-none">
                 {slide.subtitle}
               </p>
             )}
 
             {/* Action Buttons */}
-            <div className="mt-2 sm:mt-4 flex flex-wrap items-center gap-2.5 sm:gap-4">
+            <div className="mt-1 sm:mt-2.5 flex flex-wrap items-center gap-2 sm:gap-3">
               <Link
                 href={slide.link ?? "/products"}
-                className="inline-flex items-center gap-2 rounded-full bg-white px-5 sm:px-7 py-2.5 sm:py-3.5 text-xs sm:text-sm font-bold text-navy-950 transition hover:bg-gold-500 hover:text-navy-950 shadow-lg active:scale-95"
+                className="inline-flex items-center gap-1.5 rounded-full bg-white px-4 sm:px-6 py-2 sm:py-2.5 text-xs sm:text-sm font-bold text-navy-950 transition hover:bg-gold-500 hover:text-navy-950 shadow-md active:scale-95"
               >
                 <span>{slide.button_text || "Katalogni ko'rish"}</span>
-                <ArrowRight size={15} />
+                <ArrowRight size={14} />
               </Link>
 
               <a
                 href="https://t.me/Grandwatch_Admin"
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center gap-2 rounded-full bg-navy-900/80 border border-white/25 px-4 sm:px-6 py-2.5 sm:py-3.5 text-xs sm:text-sm font-semibold text-white/90 hover:bg-white/15 hover:border-white/40 transition backdrop-blur-md shadow-md active:scale-95"
+                className="inline-flex items-center gap-1.5 rounded-full bg-navy-900/80 border border-white/25 px-3.5 sm:px-5 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold text-white/90 hover:bg-white/15 hover:border-white/40 transition backdrop-blur-md shadow-md active:scale-95"
               >
-                <Send size={14} className="text-sky-400" />
+                <Send size={13} className="text-sky-400" />
                 <span>Telegram Maslahat</span>
               </a>
             </div>
 
             {/* Trust Stats on Desktop */}
-            <div className="mt-6 hidden gap-8 text-xs sm:text-sm md:flex lg:gap-12 pt-4 border-t border-white/10 max-w-xl">
+            <div className="mt-3 hidden gap-8 text-xs md:flex lg:gap-10 pt-3 border-t border-white/10 max-w-lg">
               <div>
-                <div className="text-lg font-bold text-white">1000+</div>
-                <div className="text-white/60 text-xs">Mijozlar</div>
+                <div className="text-base font-bold text-white">1000+</div>
+                <div className="text-white/60 text-[11px]">Mijozlar</div>
               </div>
               <div>
-                <div className="text-lg font-bold text-white">100%</div>
-                <div className="text-white/60 text-xs">Asl mahsulotlar</div>
+                <div className="text-base font-bold text-white">100%</div>
+                <div className="text-white/60 text-[11px]">Asl mahsulotlar</div>
               </div>
               <div>
-                <div className="text-lg font-bold text-white">12 Oy</div>
-                <div className="text-white/60 text-xs">Rasmiy kafolat</div>
+                <div className="text-base font-bold text-white">12 Oy</div>
+                <div className="text-white/60 text-[11px]">Rasmiy kafolat</div>
               </div>
               <div>
-                <div className="text-lg font-bold text-white">24/7</div>
-                <div className="text-white/60 text-xs">Yetkazib berish</div>
+                <div className="text-base font-bold text-white">24/7</div>
+                <div className="text-white/60 text-[11px]">Yetkazib berish</div>
               </div>
             </div>
           </div>
@@ -165,33 +187,33 @@ export function HeroSlider({ sliders }: { sliders: Slider[] }) {
 
       {active.length > 1 && (
         <div className="absolute inset-0 z-20 pointer-events-none">
-          {/* Arrow Left */}
+          {/* Arrow Left (Desktop only to prevent mobile text overlap) */}
           <button
             onClick={handlePrev}
             aria-label="Oldingi slayd"
-            className="pointer-events-auto absolute left-3 sm:left-6 top-1/2 -translate-y-1/2 flex h-9 w-9 sm:h-11 sm:w-11 items-center justify-center rounded-full bg-white/15 text-white backdrop-blur-md transition hover:bg-white/30 active:scale-95 border border-white/20 shadow-md"
+            className="hidden md:flex pointer-events-auto absolute left-4 lg:left-6 top-1/2 -translate-y-1/2 h-10 w-10 items-center justify-center rounded-full bg-white/15 text-white backdrop-blur-md transition hover:bg-white/30 active:scale-95 border border-white/20 shadow-md"
           >
             <ChevronLeft size={20} />
           </button>
 
-          {/* Arrow Right */}
+          {/* Arrow Right (Desktop only to prevent mobile text overlap) */}
           <button
             onClick={handleNext}
             aria-label="Keyingi slayd"
-            className="pointer-events-auto absolute right-3 sm:right-6 top-1/2 -translate-y-1/2 flex h-9 w-9 sm:h-11 sm:w-11 items-center justify-center rounded-full bg-white/15 text-white backdrop-blur-md transition hover:bg-white/30 active:scale-95 border border-white/20 shadow-md"
+            className="hidden md:flex pointer-events-auto absolute right-4 lg:right-6 top-1/2 -translate-y-1/2 h-10 w-10 items-center justify-center rounded-full bg-white/15 text-white backdrop-blur-md transition hover:bg-white/30 active:scale-95 border border-white/20 shadow-md"
           >
             <ChevronRight size={20} />
           </button>
 
           {/* Indicator Pills */}
-          <div className="pointer-events-auto absolute bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2">
+          <div className="pointer-events-auto absolute bottom-3 sm:bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-1.5">
             {active.map((s, i) => (
               <button
                 key={s.id}
                 onClick={() => setIndex(i)}
                 aria-label={`Slayd ${i + 1}`}
                 className={`h-1.5 rounded-full transition-all duration-300 ${
-                  i === index ? "w-7 sm:w-9 bg-gold-400 shadow-xs" : "w-2 bg-white/40 hover:bg-white/70"
+                  i === index ? "w-6 sm:w-8 bg-gold-400 shadow-xs" : "w-1.5 bg-white/40 hover:bg-white/70"
                 }`}
               />
             ))}
