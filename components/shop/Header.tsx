@@ -44,7 +44,7 @@ export function Header({
     )).slice(0, 5);
   }, [q, products]);
 
-  const isAdmin = user?.role === "super_admin" || user?.role === "moderator" || user?.role === "content_admin";
+  const isAdmin = user?.role === "admin" || user?.role === "super_admin";
 
   return (
     <>
@@ -330,7 +330,7 @@ export function Header({
                     </Link>
                   ) : (
                     <>
-                      {(user?.role === "super_admin" || user?.role === "moderator" || user?.role === "content_admin") && (
+                      {(user?.role === "admin" || user?.role === "super_admin") && (
                         <Link href="/admin" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-navy-900 hover:bg-navy-50">
                           <LayoutDashboard size={20} /> Boshqaruv paneli
                         </Link>

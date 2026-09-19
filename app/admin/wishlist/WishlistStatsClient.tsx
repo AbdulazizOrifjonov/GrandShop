@@ -16,7 +16,7 @@ export function WishlistStatsClient() {
   useEffect(() => {
     if (ready) {
       if (!user) router.push("/login");
-      else if (user.role === "customer") router.push("/profile");
+      else if (user.role === "user") router.push("/profile");
     }
   }, [ready, user, router]);
 
@@ -36,7 +36,7 @@ export function WishlistStatsClient() {
     }).sort((a, b) => b.saves - a.saves); // Sort by most saved
   }, [products]);
 
-  if (!user || user.role === "customer") return null;
+  if (!user || user.role === "user") return null;
 
   return (
     <div>
