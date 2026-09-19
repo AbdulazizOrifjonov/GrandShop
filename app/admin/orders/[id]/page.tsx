@@ -309,8 +309,8 @@ export default function AdminOrderDetailPage({
             )}
           </div>
 
-          {/* O'NG USTUN: Mijoz ma'lumotlari & To'lov xulosasi */}
-          <div className="space-y-5 lg:sticky lg:top-24">
+          {/* O'NG USTUN: Mijoz ma'lumotlari & To'lov xulosasi (Qotirilgan / Sticky panel) */}
+          <div className="space-y-5 lg:sticky lg:top-24 lg:self-start lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto pr-0.5">
             {/* 1. Mijoz Ma'lumotlari Kartasi */}
             <div className="rounded-2xl border border-navy-100 bg-white p-5 shadow-2xs space-y-4">
               <div className="flex items-center gap-2 border-b border-navy-50 pb-3">

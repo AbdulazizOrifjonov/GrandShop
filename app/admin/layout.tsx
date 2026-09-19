@@ -10,7 +10,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <AdminNavProvider>
         <div className="flex bg-navy-50 min-h-screen">
           <AdminSidebar />
-          <main className="flex-1 w-full lg:ml-0 overflow-x-hidden min-w-0">{children}</main>
+          <main className="flex-1 w-full lg:ml-0 min-w-0">{children}</main>
         </div>
       </AdminNavProvider>
     </AdminGuard>
