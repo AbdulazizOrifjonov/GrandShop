@@ -56,9 +56,12 @@ export default function CheckoutPage() {
     }
     
     const itemsData = detailed.map((d) => ({
+      id: d.product!.id,
       name: d.product!.name,
+      image: d.product!.image || (d.product!.images && d.product!.images[0]) || null,
       quantity: d.item.quantity,
       price: d.product!.price,
+      slug: d.product!.slug,
     }));
 
     try {
