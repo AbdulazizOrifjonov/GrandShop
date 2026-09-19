@@ -244,9 +244,11 @@ export function Header({
             <Link href="/cart" className="relative hidden md:flex items-center gap-2 text-navy-900 hover:text-gold-500 transition">
               <span className="relative flex h-10 w-10 items-center justify-center rounded-full bg-navy-50 touch-target">
                 <ShoppingCart size={20} />
-                <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-danger text-[10px] font-bold text-white shadow-sm">
-                  {itemCount}
-                </span>
+                {itemCount > 0 && (
+                  <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-danger text-[10px] font-bold text-white shadow-sm">
+                    {itemCount}
+                  </span>
+                )}
               </span>
               <span className="hidden text-sm font-bold lg:block">Savatcha</span>
             </Link>

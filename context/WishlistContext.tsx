@@ -9,6 +9,7 @@ import {
 } from "react";
 
 import { useToast } from "@/context/ToastContext";
+import { useStore } from "@/lib/store";
 
 interface WishlistContextValue {
   ids: string[];
@@ -25,6 +26,7 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
   const [ids, setIds] = useState<string[]>([]);
   const [hydrated, setHydrated] = useState(false);
   const { showToast } = useToast();
+  const { products, ready } = useStore();
 
   useEffect(() => {
     try {
@@ -35,6 +37,16 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
     }
     setHydrated(true);
   }, []);
+
+  // Bazadan o'chirilgan yoki mavjud bo'lmagan mahsulotlarni avtomatik tozalash
+  useEffect(() => {
+    if (!hydrated || !ready || products.length === 0) return;
+    setIds((prev) => {
+      const valid = prev.filter((id) => products.some((p) => p.id === id));
+      if (valid.length !== prev.length) return valid;
+      return prev;
+    });
+  }, [hydrated, ready, products]);
 
   useEffect(() => {
     if (!hydrated) return;

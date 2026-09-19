@@ -10,6 +10,7 @@ import {
 } from "react";
 import { CartItem } from "@/types/database";
 import { useToast } from "@/context/ToastContext";
+import { useStore } from "@/lib/store";
 
 interface CartContextValue {
   items: CartItem[];
@@ -28,6 +29,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
   const [hydrated, setHydrated] = useState(false);
   const { showToast } = useToast();
+  const { products, ready } = useStore();
 
   useEffect(() => {
     try {
@@ -38,6 +40,18 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
     setHydrated(true);
   }, []);
+
+  // Bazadan o'chirilgan yoki mavjud bo'lmagan mahsulotlarni avtomatik tozalash
+  useEffect(() => {
+    if (!hydrated || !ready || products.length === 0) return;
+    setItems((prev) => {
+      const valid = prev.filter((i) => products.some((p) => p.id === i.productId));
+      if (valid.length !== prev.length) {
+        return valid;
+      }
+      return prev;
+    });
+  }, [hydrated, ready, products]);
 
   useEffect(() => {
     if (!hydrated) return;
