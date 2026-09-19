@@ -184,42 +184,87 @@ export function CatalogView({
       </aside>
 
       <div>
-        <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        {/* Quick Category Chips for Mobile */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-3 mb-3 lg:hidden -mx-4 px-4 scrollbar-none">
+          <button
+            onClick={() => { setCategorySlug("all"); setPage(1); }}
+            className={cn(
+              "shrink-0 rounded-full px-3.5 py-1.5 text-xs font-bold transition shadow-xs",
+              categorySlug === "all"
+                ? "bg-navy-900 text-white"
+                : "bg-navy-50 text-navy-900 border border-navy-200/80 hover:bg-navy-100"
+            )}
+          >
+            Barchasi ({products.length})
+          </button>
+          {categories.filter(c => c.is_active).map(cat => {
+            const count = products.filter(p => p.category_id === cat.id).length;
+            const isSelected = categorySlug === cat.slug;
+            return (
+              <button
+                key={cat.id}
+                onClick={() => { setCategorySlug(cat.slug); setPage(1); }}
+                className={cn(
+                  "shrink-0 rounded-full px-3.5 py-1.5 text-xs font-bold transition shadow-xs",
+                  isSelected
+                    ? "bg-navy-900 text-white"
+                    : "bg-navy-50 text-navy-900 border border-navy-200/80 hover:bg-navy-100"
+                )}
+              >
+                {cat.name} ({count})
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Toolbar */}
+        <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center justify-between w-full sm:w-auto">
             <div>
-              <h1 className="text-2xl font-bold text-navy-900">{title}</h1>
-              <p className="text-sm text-navy-900/50">{filtered.length} ta mahsulot</p>
+              <h1 className="text-xl sm:text-2xl font-bold text-navy-900">{title}</h1>
+              <p className="text-xs sm:text-sm text-navy-900/50">{filtered.length} ta mahsulot</p>
             </div>
+          </div>
+
+          {/* Unified Controls Toolbar */}
+          <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
             {/* Filter Toggle Mobile */}
             <button
               onClick={() => setMobileFiltersOpen(true)}
-              className="flex h-10 items-center gap-2 rounded-xl border border-navy-200 bg-white px-4 text-sm font-semibold text-navy-900 shadow-sm transition hover:bg-navy-50 lg:hidden"
+              className="flex flex-1 sm:hidden h-10 items-center justify-center gap-2 rounded-xl border border-navy-200 bg-white px-3 text-xs font-bold text-navy-900 shadow-xs active:scale-95 transition"
             >
-              <Filter size={18} />
-              Filterlar
+              <Filter size={15} />
+              <span>Filterlar</span>
+              {(selectedBrands.length > 0 || priceMax < 50000000) && (
+                <span className="flex h-4 min-w-[16px] px-1 items-center justify-center rounded-full bg-gold-500 text-[10px] font-bold text-navy-950">
+                  {selectedBrands.length + (priceMax < 50000000 ? 1 : 0)}
+                </span>
+              )}
             </button>
-          </div>
-          <div className="flex items-center gap-3">
+
             <select
               value={sort}
               onChange={(e) => setSort(e.target.value)}
-              className="rounded-lg border border-navy-100 px-3 py-2 text-sm"
+              className="flex-1 sm:flex-none rounded-xl border border-navy-200 bg-white px-3 py-2 text-xs sm:text-sm font-medium text-navy-900 shadow-xs outline-none"
             >
-              <option value="popular">Saralash: Mashhurlik bo'yicha</option>
-              <option value="new">Yangi mahsulotlar</option>
-              <option value="price_asc">Narx: pastdan yuqoriga</option>
-              <option value="price_desc">Narx: yuqoridan pastga</option>
+              <option value="popular">Mashhurlar</option>
+              <option value="new">Yangi kelganlar</option>
+              <option value="price_asc">Narx: arzonroq</option>
+              <option value="price_desc">Narx: qimmatroq</option>
             </select>
-            <div className="flex overflow-hidden rounded-lg border border-navy-100">
+
+            <div className="flex overflow-hidden rounded-xl border border-navy-200 bg-white shadow-xs shrink-0">
               <button
                 onClick={() => setView("grid")}
-                className={`flex h-9 w-9 items-center justify-center ${view === "grid" ? "bg-navy-900 text-white" : "text-navy-900/50"}`}
+                aria-label="Grid ko'rinishi"
+                className={`flex h-10 w-10 items-center justify-center transition ${view === "grid" ? "bg-navy-900 text-white" : "text-navy-900/50 hover:text-navy-900"}`}
               >
                 <LayoutGrid size={16} />
               </button>
               <button
                 onClick={() => setView("list")}
-                className={`flex h-9 w-9 items-center justify-center ${view === "list" ? "bg-navy-900 text-white" : "text-navy-900/50"}`}
+                aria-label="Ro'yxat ko'rinishi"
+                className={`flex h-10 w-10 items-center justify-center transition ${view === "list" ? "bg-navy-900 text-white" : "text-navy-900/50 hover:text-navy-900"}`}
               >
                 <List size={16} />
               </button>

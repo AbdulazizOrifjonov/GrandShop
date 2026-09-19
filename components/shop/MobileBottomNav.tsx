@@ -2,15 +2,18 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Search, Heart, ShoppingCart, LayoutGrid } from "lucide-react";
+import { Home, Heart, ShoppingCart, LayoutGrid, User } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
+import { useAuth } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 
 export function MobileBottomNav() {
   const pathname = usePathname();
   const { itemCount } = useCart();
   const { ids } = useWishlist();
+  const { user } = useAuth();
+  const isAuthed = !!user;
 
   if (pathname?.startsWith("/admin")) return null;
 
@@ -19,25 +22,30 @@ export function MobileBottomNav() {
     { href: "/products", label: "Katalog", icon: LayoutGrid },
     { href: "/wishlist", label: "Sevimlilar", icon: Heart, badge: ids.length },
     { href: "/cart", label: "Savatcha", icon: ShoppingCart, badge: itemCount },
+    { href: isAuthed ? "/profile" : "/login", label: isAuthed ? "Profil" : "Kirish", icon: User },
   ];
 
   return (
-    <div 
-      className="fixed bottom-0 left-0 z-50 flex w-full items-center justify-around border-t border-navy-100 bg-white md:hidden shadow-[0_-4px_10px_rgba(0,0,0,0.05)]"
+    <nav
+      aria-label="Mobil navigatsiya"
+      className="fixed bottom-0 left-0 z-50 flex w-full items-center justify-around border-t border-navy-100/80 bg-white/92 backdrop-blur-xl md:hidden shadow-[0_-8px_25px_rgba(10,25,47,0.07)]"
       style={{ 
-        height: 'calc(65px + env(safe-area-inset-bottom))',
+        height: 'calc(62px + env(safe-area-inset-bottom))',
         paddingBottom: 'env(safe-area-inset-bottom)'
       }}
     >
       {navItems.map((item) => {
-        const isActive = item.href === "/" ? pathname === "/" : pathname?.startsWith(item.href);
+        const isActive = item.href === "/" 
+          ? pathname === "/" 
+          : pathname?.startsWith(item.href) || (item.href === "/profile" && pathname?.startsWith("/orders"));
+        
         return (
           <Link
             key={item.href}
             href={item.href}
             className={cn(
-              "flex flex-col items-center justify-center h-full w-full gap-[2px] transition-colors",
-              isActive ? "text-navy-900" : "text-navy-900/40 active:text-navy-900"
+              "relative flex flex-col items-center justify-center h-full flex-1 gap-0.5 transition-all duration-150 select-none",
+              isActive ? "text-navy-950 font-bold" : "text-navy-900/40 hover:text-navy-900 active:scale-95 font-medium"
             )}
             onClick={() => {
               if (item.href === pathname) {
@@ -46,17 +54,28 @@ export function MobileBottomNav() {
             }}
           >
             <div className="relative flex items-center justify-center">
-              <item.icon size={22} strokeWidth={1.75} className={isActive && item.icon === Heart ? "fill-navy-900" : ""} />
+              <item.icon 
+                size={21} 
+                strokeWidth={isActive ? 2.2 : 1.75} 
+                className={cn(
+                  "transition-transform duration-200",
+                  isActive ? "scale-105" : "",
+                  isActive && item.icon === Heart ? "fill-navy-900" : ""
+                )} 
+              />
               {!!item.badge && item.badge > 0 && (
-                <span className="absolute -right-2 -top-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-danger text-[9px] font-bold text-white shadow-sm ring-2 ring-white">
+                <span className="absolute -right-2.5 -top-1.5 flex h-4 min-w-[16px] px-1 items-center justify-center rounded-full bg-danger text-[9px] font-bold text-white shadow-xs ring-2 ring-white">
                   {item.badge}
                 </span>
               )}
             </div>
-            <span className="text-[10px] font-semibold text-nowrap mt-1">{item.label}</span>
+            <span className="text-[10px] leading-tight mt-0.5">{item.label}</span>
+            {isActive && (
+              <span className="absolute bottom-1 w-3 h-[2.5px] rounded-full bg-gold-500 animate-in fade-in zoom-in-75 duration-200" />
+            )}
           </Link>
         );
       })}
-    </div>
+    </nav>
   );
 }

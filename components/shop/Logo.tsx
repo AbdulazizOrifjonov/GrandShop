@@ -8,9 +8,9 @@ export function Logo({ dark = false, hideTextOnMobile = false, className }: { da
         src="/logo.png"
         alt="Grand Watch Shop"
         className={cn(
-          "h-[50px] w-auto object-contain transition-all",
+          "h-[36px] sm:h-[50px] w-auto object-contain transition-all",
           dark ? "brightness-0 invert" : "",
-          hideTextOnMobile ? "max-w-[140px] md:max-w-none" : ""
+          hideTextOnMobile ? "max-w-[135px] md:max-w-none" : ""
         )}
       />
     </Link>
