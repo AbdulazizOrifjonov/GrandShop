@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Heart, ShoppingCart, Send } from "lucide-react";
@@ -48,8 +48,11 @@ export function ProductCard({
   }, [product.name, product.price, product.slug, product.id]);
 
   const [activeIndex, setActiveIndex] = useState(0);
-  const [touchStart, setTouchStart] = useState(0);
-  const [touchEnd, setTouchEnd] = useState(0);
+  const touchStartXRef = useRef<number | null>(null);
+  const touchStartYRef = useRef<number | null>(null);
+  const mouseStartXRef = useRef<number | null>(null);
+  const mouseStartYRef = useRef<number | null>(null);
+  const hasSwipedRef = useRef(false);
 
   const images = useMemo(() => {
     const all = [product.image, ...(product.images?.map(i => i.url) || [])].filter(Boolean) as string[];
@@ -59,32 +62,98 @@ export function ProductCard({
   const handleNext = (e?: React.MouseEvent) => {
     e?.preventDefault();
     e?.stopPropagation();
+    if (images.length <= 1) return;
     setActiveIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
   };
 
   const handlePrev = (e?: React.MouseEvent) => {
     e?.preventDefault();
     e?.stopPropagation();
+    if (images.length <= 1) return;
     setActiveIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
   };
 
   const onTouchStartHandler = (e: React.TouchEvent) => {
-    setTouchEnd(0);
-    setTouchStart(e.targetTouches[0].clientX);
+    if (images.length <= 1) return;
+    const touch = e.touches[0];
+    touchStartXRef.current = touch.clientX;
+    touchStartYRef.current = touch.clientY;
+    hasSwipedRef.current = false;
   };
 
   const onTouchMoveHandler = (e: React.TouchEvent) => {
-    setTouchEnd(e.targetTouches[0].clientX);
+    if (touchStartXRef.current === null || images.length <= 1) return;
+    const touch = e.touches[0];
+    const diffX = touch.clientX - touchStartXRef.current;
+    const diffY = touch.clientY - (touchStartYRef.current ?? touch.clientY);
+    if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 15) {
+      hasSwipedRef.current = true;
+    }
   };
 
   const onTouchEndHandler = () => {
-    if (!touchStart || !touchEnd) return;
-    const distance = touchStart - touchEnd;
-    const isLeftSwipe = distance > 50;
-    const isRightSwipe = distance < -50;
-    
-    if (isLeftSwipe) handleNext();
-    if (isRightSwipe) handlePrev();
+    if (touchStartXRef.current === null || images.length <= 1) return;
+    touchStartXRef.current = null;
+    touchStartYRef.current = null;
+  };
+
+  const onTouchEndAction = (e: React.TouchEvent) => {
+    if (touchStartXRef.current === null || images.length <= 1) return;
+    const touch = e.changedTouches[0];
+    const diffX = touch.clientX - touchStartXRef.current;
+    const diffY = touch.clientY - (touchStartYRef.current ?? touch.clientY);
+    touchStartXRef.current = null;
+    touchStartYRef.current = null;
+
+    if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 25) {
+      hasSwipedRef.current = true;
+      if (diffX < 0) {
+        handleNext();
+      } else {
+        handlePrev();
+      }
+    }
+  };
+
+  const onMouseDownHandler = (e: React.MouseEvent) => {
+    if (images.length <= 1) return;
+    mouseStartXRef.current = e.clientX;
+    mouseStartYRef.current = e.clientY;
+    hasSwipedRef.current = false;
+  };
+
+  const onMouseMoveHandler = (e: React.MouseEvent) => {
+    if (mouseStartXRef.current === null || images.length <= 1) return;
+    const diffX = e.clientX - mouseStartXRef.current;
+    const diffY = e.clientY - (mouseStartYRef.current ?? e.clientY);
+    if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 15) {
+      hasSwipedRef.current = true;
+    }
+  };
+
+  const onMouseUpHandler = (e: React.MouseEvent) => {
+    if (mouseStartXRef.current === null || images.length <= 1) return;
+    const diffX = e.clientX - mouseStartXRef.current;
+    const diffY = e.clientY - (mouseStartYRef.current ?? e.clientY);
+    mouseStartXRef.current = null;
+    mouseStartYRef.current = null;
+
+    if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 25) {
+      hasSwipedRef.current = true;
+      if (diffX < 0) {
+        handleNext();
+      } else {
+        handlePrev();
+      }
+    }
+  };
+
+  const onLinkClickHandler = (e: React.MouseEvent) => {
+    if (hasSwipedRef.current) {
+      e.preventDefault();
+      e.stopPropagation();
+      hasSwipedRef.current = false;
+    }
   };
 
   return (
@@ -129,31 +198,37 @@ export function ProductCard({
 
         <Link 
           href={`/products/${product.slug}`} 
-          className="relative block h-full w-full z-10"
+          onClick={onLinkClickHandler}
+          className="relative block h-full w-full z-10 select-none overflow-hidden"
           onTouchStart={images.length > 1 ? onTouchStartHandler : undefined}
           onTouchMove={images.length > 1 ? onTouchMoveHandler : undefined}
-          onTouchEnd={images.length > 1 ? onTouchEndHandler : undefined}
+          onTouchEnd={images.length > 1 ? onTouchEndAction : undefined}
+          onMouseDown={images.length > 1 ? onMouseDownHandler : undefined}
+          onMouseMove={images.length > 1 ? onMouseMoveHandler : undefined}
+          onMouseUp={images.length > 1 ? onMouseUpHandler : undefined}
+          draggable={false}
         >
           {images.length > 0 ? (
-            <>
+            <div 
+              className="flex h-full w-full transition-transform duration-300 ease-out"
+              style={{ transform: `translateX(-${activeIndex * 100}%)` }}
+            >
               {images.map((src, idx) => (
                 <div 
                   key={idx} 
-                  className={cn(
-                    "absolute inset-0 h-full w-full transition-opacity duration-300", 
-                    idx === activeIndex ? "opacity-100 z-10" : "opacity-0 z-0"
-                  )}
+                  className="relative h-full w-full shrink-0 select-none"
                 >
                   <Image
                     src={src}
                     alt={`${product.name} - ${idx + 1}`}
                     fill
+                    draggable={false}
                     sizes={variant === "full" ? "200px" : "(max-width: 480px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"}
-                    className="object-cover group-hover:scale-105 transition-transform duration-500"
+                    className="object-cover group-hover:scale-105 transition-transform duration-500 pointer-events-none select-none"
                   />
                 </div>
               ))}
-            </>
+            </div>
           ) : (
             <div className="flex h-full items-center justify-center text-navy-900/30 bg-navy-50 absolute inset-0 z-10">
               No image
@@ -166,21 +241,23 @@ export function ProductCard({
           <>
             <button 
               onClick={handlePrev}
+              aria-label="Oldingi rasm"
               className="absolute left-1.5 top-1/2 -translate-y-1/2 z-20 flex h-6 w-6 sm:h-7 sm:w-7 items-center justify-center rounded-full bg-white/70 shadow-sm hover:bg-white text-navy-900 opacity-0 transition-opacity group-hover:opacity-100"
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m15 18-6-6 6-6"/></svg>
             </button>
             <button 
               onClick={handleNext}
+              aria-label="Keyingi rasm"
               className="absolute right-1.5 top-1/2 -translate-y-1/2 z-20 flex h-6 w-6 sm:h-7 sm:w-7 items-center justify-center rounded-full bg-white/70 shadow-sm hover:bg-white text-navy-900 opacity-0 transition-opacity group-hover:opacity-100"
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m9 18 6-6-6-6"/></svg>
             </button>
-            <div className="absolute bottom-1.5 left-1/2 -translate-x-1/2 z-20 flex gap-1 sm:gap-1.5">
+            <div className="absolute bottom-1.5 left-1/2 -translate-x-1/2 z-20 flex gap-1 sm:gap-1.5 pointer-events-none">
               {images.map((_, idx) => (
                 <div 
                   key={idx} 
-                  className={cn("h-1 sm:h-1.5 rounded-full transition-all", idx === activeIndex ? "w-2.5 sm:w-3 bg-white" : "w-1 sm:w-1.5 bg-white/50")}
+                  className={cn("h-1 sm:h-1.5 rounded-full transition-all duration-300 shadow-xs", idx === activeIndex ? "w-2.5 sm:w-3 bg-white" : "w-1 sm:w-1.5 bg-white/50")}
                 />
               ))}
             </div>
