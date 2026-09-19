@@ -67,45 +67,59 @@ ${text}
     
     // Extract price with comprehensive multi-pattern support
     let price: number | null = null;
-
-    // 1. Explicit keywords: Narx, Narxi, Цена, Стоимость, Price, Cost, 💰, 💵, 💸
-    const labelMatch = text.match(/(?:narx[i]?|цена|стоимость|price|cost|[💰💵💸])[^\d\n]*?(\$?\s*[\d\.\s\,]+)/i);
-    if (labelMatch && labelMatch[1]) {
-      const numStr = labelMatch[1].replace(/[^\d]/g, '');
-      if (numStr && parseInt(numStr, 10) > 0) {
-        price = parseInt(numStr, 10);
-      }
-    }
-
-    // 2. Dollar signs: $100, $ 100, 100$, 100 $
-    if (!price) {
-      const dollarMatch = text.match(/\$\s*([\d\.\s\,]+)/) || text.match(/([\d\.\s\,]+)\s*\$/);
-      if (dollarMatch && dollarMatch[1]) {
-        const numStr = dollarMatch[1].replace(/[^\d]/g, '');
-        if (numStr && parseInt(numStr, 10) > 0) {
-          price = parseInt(numStr, 10);
+    const allLines = text.split('\n');
+    
+    // 1. Look for explicit price keyword line first
+    for (const line of allLines) {
+      if (/(?:narx[i]?|цена|стоимость|price|cost|[💰💵💸])/iu.test(line)) {
+        const dol = line.match(/\$\s*(\d[\d\s\.,]*)/) || line.match(/(\d[\d\s\.,]*)\s*\$/);
+        if (dol) {
+          const n = dol[1].replace(/[^\d]/g, '');
+          if (n && parseInt(n, 10) > 0) { price = parseInt(n, 10); break; }
+        }
+        const sum = line.match(/(\d[\d\s\.,]*)\s*(?:сум|uzs|so'?m)/i);
+        if (sum) {
+          const n = sum[1].replace(/[^\d]/g, '');
+          if (n && parseInt(n, 10) > 0) { price = parseInt(n, 10); break; }
+        }
+        const any = line.match(/(\d[\d\s\.,]*\d|\d+)/);
+        if (any) {
+          const n = any[1].replace(/[^\d]/g, '');
+          if (n && parseInt(n, 10) > 0) { price = parseInt(n, 10); break; }
         }
       }
     }
 
-    // 3. Currency suffixes: so'm, sum, uzs, usd, dollar, доллар, у.е.
+    // 2. Look for lines with dollar signs ($100, 100$)
     if (!price) {
-      const currMatch = text.match(/([\d\.\s\,]+)\s*(?:сум|uzs|so\'?m|usd|dollar|доллар|у\.?е\.?)/i);
-      if (currMatch && currMatch[1]) {
-        const numStr = currMatch[1].replace(/[^\d]/g, '');
-        if (numStr && parseInt(numStr, 10) > 0) {
-          price = parseInt(numStr, 10);
+      for (const line of allLines) {
+        const dol = line.match(/\$\s*(\d[\d\s\.,]*)/) || line.match(/(\d[\d\s\.,]*)\s*\$/);
+        if (dol) {
+          const n = dol[1].replace(/[^\d]/g, '');
+          if (n && parseInt(n, 10) > 0) { price = parseInt(n, 10); break; }
         }
       }
     }
 
-    // 4. Standalone formatted large number: e.g. 1 400 000, 250 000, 1.200.000
+    // 3. Look for lines with currency words (so'm, sum, uzs, usd, dollar)
     if (!price) {
-      const numMatch = text.match(/\b(\d{1,3}(?:[\s\.]\d{3})+)\b/);
-      if (numMatch && numMatch[1]) {
-        const numStr = numMatch[1].replace(/[^\d]/g, '');
-        if (numStr && parseInt(numStr, 10) > 0) {
-          price = parseInt(numStr, 10);
+      for (const line of allLines) {
+        const sum = line.match(/(\d[\d\s\.,]*)\s*(?:сум|uzs|so'?m|usd|dollar|доллар|у\.?е\.?)/i);
+        if (sum) {
+          const n = sum[1].replace(/[^\d]/g, '');
+          if (n && parseInt(n, 10) > 0) { price = parseInt(n, 10); break; }
+        }
+      }
+    }
+
+    // 4. Standalone formatted large number (>= 10 000)
+    if (!price) {
+      for (const line of allLines) {
+        if (/(?:oy|oylik|oyga|месяц|год|лет|yil|yillik|kun)/i.test(line)) continue;
+        const num = line.match(/\b(\d{1,3}(?:[\s\.]\d{3})+)\b/);
+        if (num) {
+          const n = num[1].replace(/[^\d]/g, '');
+          if (n && parseInt(n, 10) >= 10000) { price = parseInt(n, 10); break; }
         }
       }
     }

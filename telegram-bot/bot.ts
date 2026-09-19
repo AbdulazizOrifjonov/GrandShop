@@ -87,9 +87,9 @@ async function processMediaGroup(ctx: Context, mediaGroupId: string) {
       return;
     }
 
-    // Check duplicate in Supabase
-    const { data: dup } = await supabase.from('products').select('id').eq('name', parsed.name).limit(1).single();
-    if (dup) {
+    // Check duplicate in Supabase (safe check without .single() error)
+    const { data: dup } = await supabase.from('products').select('id').ilike('name', parsed.name.trim()).limit(1);
+    if (dup && dup.length > 0) {
       if (statusMsg) await ctx.telegram.editMessageText(ctx.chat?.id, statusMsg.message_id, undefined, `⚠️ **Dublikat:** ${parsed.name} avval qo'shilgan, o'tkazib yuborildi.`, { parse_mode: "Markdown" });
       return;
     }
@@ -136,12 +136,10 @@ async function processMediaGroup(ctx: Context, mediaGroupId: string) {
       }
     }
 
-    // Ensure price is valid and not 0
+    // Ensure price is valid
     let finalPrice = parsed.price;
     if (!finalPrice || finalPrice <= 0) {
-      const anyNum = group.text.match(/\b(\d{2,8})\b/);
-      if (anyNum) finalPrice = parseInt(anyNum[1], 10);
-      else finalPrice = 100; // safe non-zero fallback
+      finalPrice = 100; // safe default if absolutely no price in text
     }
 
     const productId = await insertProduct(
