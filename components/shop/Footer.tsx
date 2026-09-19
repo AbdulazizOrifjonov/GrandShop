@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { MapPin, Mail, Phone, Send, Globe } from "lucide-react";
+import { InstagramIcon } from "@/components/icons/InstagramIcon";
 import { Logo } from "./Logo";
 
 export function Footer() {
@@ -38,9 +39,21 @@ export function Footer() {
         <div>
           <h4 className="mb-4 font-semibold">Aloqa</h4>
           <ul className="space-y-3 text-sm text-white/70">
-            <li className="flex items-center gap-2"><Phone size={15} /> +998 90 123 45 67</li>
-            <li className="flex items-center gap-2"><Mail size={15} /> info@grandwatch.uz</li>
-            <li className="flex items-center gap-2"><MapPin size={15} /> Toshkent, O'zbekiston</li>
+            <li>
+              <a href="tel:+998977657180" className="flex items-center gap-2 hover:text-white transition font-medium text-white/90">
+                <Phone size={15} className="text-gold-400 shrink-0" /> +998 97 765 71 80
+              </a>
+            </li>
+            <li>
+              <a
+                href="https://www.instagram.com/reel/Dc_Ia4KCt7W/?stkn=MTZiM2Rza2Rla2p2MQ=="
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center gap-2 text-rose-400 hover:text-rose-300 transition font-medium"
+              >
+                <InstagramIcon size={15} className="shrink-0" /> Instagram sahifamiz
+              </a>
+            </li>
             <li>
               <a
                 href="https://t.me/+tX9dQIISDYFlYWVi"
@@ -48,9 +61,11 @@ export function Footer() {
                 rel="noreferrer"
                 className="flex items-center gap-2 text-sky-400 hover:text-sky-300 transition font-medium"
               >
-                <Send size={15} /> Rasmiy Telegram Kanal
+                <Send size={15} className="shrink-0" /> Rasmiy Telegram Kanal
               </a>
             </li>
+            <li className="flex items-center gap-2"><Mail size={15} className="shrink-0 text-white/50" /> info@grandwatch.uz</li>
+            <li className="flex items-center gap-2"><MapPin size={15} className="shrink-0 text-white/50" /> Toshkent, O'zbekiston</li>
           </ul>
         </div>
 
@@ -63,25 +78,49 @@ export function Footer() {
               target="_blank"
               rel="noreferrer"
               aria-label="Telegram Kanal"
+              title="Rasmiy Telegram Kanal"
             >
               <Send size={15} />
             </a>
-            <a className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition" href="#" aria-label="Instagram">
-              <Globe size={15} />
+            <a
+              className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 text-white hover:opacity-90 transition shadow-xs"
+              href="https://www.instagram.com/reel/Dc_Ia4KCt7W/?stkn=MTZiM2Rza2Rla2p2MQ=="
+              target="_blank"
+              rel="noreferrer"
+              aria-label="Instagram"
+              title="Instagram"
+            >
+              <InstagramIcon size={16} />
             </a>
-            <a className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition" href="#" aria-label="YouTube">
-              <Globe size={15} />
+            <a
+              className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-600 text-white hover:bg-emerald-500 transition shadow-xs"
+              href="tel:+998977657180"
+              aria-label="Telefon"
+              title="Telefon: +998 97 765 71 80"
+            >
+              <Phone size={15} />
             </a>
           </div>
-          <a
-            href="https://t.me/+tX9dQIISDYFlYWVi"
-            target="_blank"
-            rel="noreferrer"
-            className="mt-4 inline-flex items-center gap-2 rounded-xl bg-white/10 border border-white/15 px-3.5 py-2 text-xs font-semibold text-white hover:bg-[#2AABEE] hover:border-[#2AABEE] transition"
-          >
-            <Send size={13} className="text-sky-400" />
-            <span>Kanalga a'zo bo'lish</span>
-          </a>
+          <div className="mt-4 flex flex-col gap-2">
+            <a
+              href="https://www.instagram.com/reel/Dc_Ia4KCt7W/?stkn=MTZiM2Rza2Rla2p2MQ=="
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-rose-500/15 via-rose-500/20 to-purple-500/15 border border-rose-500/30 px-3.5 py-2 text-xs font-semibold text-rose-300 hover:bg-rose-500 hover:text-white transition"
+            >
+              <InstagramIcon size={13} className="text-rose-400" />
+              <span>Instagram obuna bo'lish</span>
+            </a>
+            <a
+              href="https://t.me/+tX9dQIISDYFlYWVi"
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-2 rounded-xl bg-white/10 border border-white/15 px-3.5 py-2 text-xs font-semibold text-white hover:bg-[#2AABEE] hover:border-[#2AABEE] transition"
+            >
+              <Send size={13} className="text-sky-400" />
+              <span>Telegram kanalga a'zo bo'lish</span>
+            </a>
+          </div>
           <p className="mt-4 font-serif text-sm italic text-white/60">
             &ldquo;Vaqt — bu eng qimmatli boylik.&rdquo;
           </p>
