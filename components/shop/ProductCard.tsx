@@ -2,7 +2,7 @@
 import React, { useState, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Heart, ShoppingCart } from "lucide-react";
+import { Heart, ShoppingCart, Send } from "lucide-react";
 import { Product } from "@/types/database";
 import { formatSom, calcDiscount, cn } from "@/lib/utils";
 import { RatingStars } from "./RatingStars";
@@ -74,33 +74,39 @@ export function ProductCard({
   return (
     <div
       className={cn(
-        "group relative rounded-xl border border-navy-100 bg-white p-3 transition-shadow hover:shadow-lg card-touch",
+        "group relative rounded-2xl border border-navy-100/90 bg-white p-2.5 sm:p-3 transition-all duration-300 hover:shadow-xl hover:border-navy-200 card-touch",
         variant === "full" ? "flex flex-row gap-4" : "flex h-full flex-col"
       )}
     >
       <div
         className={cn(
-          "relative overflow-hidden rounded-lg bg-navy-50 shrink-0",
-          variant === "full" ? "h-40 w-40 md:h-48 md:w-48" : "mb-3 aspect-square w-full"
+          "relative overflow-hidden rounded-xl bg-navy-50/70 shrink-0",
+          variant === "full" ? "h-40 w-40 md:h-48 md:w-48" : "mb-2.5 aspect-[4/5] w-full"
         )}
       >
         {(discount > 0 || product.is_new) && (
           <span
             className={cn(
-              "absolute left-2 top-2 z-20 rounded px-2 py-0.5 text-[11px] font-semibold text-white",
-              discount > 0 ? "bg-danger" : "bg-info"
+              "absolute left-2 top-2 z-20 rounded-md px-2 py-0.5 text-[10px] font-bold tracking-wide uppercase text-white shadow-xs",
+              discount > 0 ? "bg-danger" : "bg-navy-900"
             )}
           >
             {discount > 0 ? `-${discount}%` : "Yangi"}
           </span>
         )}
+
+        {/* Mechanism tag */}
+        <span className="absolute left-2 bottom-2 z-20 rounded-md bg-navy-950/75 backdrop-blur-xs px-1.5 py-0.5 text-[9px] font-semibold tracking-wider text-white/95 uppercase shadow-xs pointer-events-none">
+          {product.mechanism || "Avtomatik"}
+        </span>
+
         <button
           onClick={() => toggle(product.id)}
           aria-label="Sevimlilarga qo'shish"
-          className="absolute right-2 top-2 z-20 flex h-9 w-9 items-center justify-center rounded-full bg-white/90 shadow-sm transition hover:bg-white touch-target"
+          className="absolute right-2 top-2 z-20 flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-white/90 shadow-sm transition hover:bg-white touch-target hover:scale-105"
         >
           <Heart
-            size={18}
+            size={17}
             className={wished ? "fill-danger text-danger" : "text-navy-900"}
           />
         </button>
@@ -127,7 +133,7 @@ export function ProductCard({
                     alt={`${product.name} - ${idx + 1}`}
                     fill
                     sizes={variant === "full" ? "200px" : "(max-width: 480px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"}
-                    className="object-cover"
+                    className="object-cover group-hover:scale-105 transition-transform duration-500"
                   />
                 </div>
               ))}
@@ -166,7 +172,12 @@ export function ProductCard({
         )}
       </div>
 
-      <div className="flex flex-1 flex-col mt-2 sm:mt-0">
+      <div className="flex flex-1 flex-col mt-1 sm:mt-0">
+        {product.brand && (
+          <span className="text-[10px] font-extrabold uppercase tracking-wider text-navy-900/55 mb-0.5 block font-mono">
+            {product.brand}
+          </span>
+        )}
         <Link href={`/products/${product.slug}`} className="mb-1 line-clamp-2 text-[13px] sm:text-sm font-semibold text-navy-900 hover:text-gold-500 md:text-base leading-snug">
           {product.name}
         </Link>
@@ -191,48 +202,62 @@ export function ProductCard({
             )}
           </div>
 
-          <div className={variant === "full" ? "w-full sm:w-auto sm:min-w-[180px]" : ""}>
-            {cartItem ? (
-              <div className="flex h-9 sm:h-11 w-full items-center justify-between gap-1 sm:gap-2">
-                <button
-                  onClick={(e) => {
-                    e.preventDefault();
-                    updateQuantity(product.id, cartItem.quantity - 1);
-                  }}
-                  className="flex h-full flex-1 items-center justify-center rounded-md sm:rounded-lg bg-navy-900 text-lg sm:text-xl font-medium text-white transition hover:bg-navy-800"
-                >
-                  -
-                </button>
-                <div className="flex h-full w-10 sm:w-14 shrink-0 items-center justify-center rounded-md sm:rounded-lg border border-navy-900/20 text-[13px] sm:text-[15px] font-bold text-navy-900 bg-white">
-                  {cartItem.quantity}
+          <div className={cn("flex items-center gap-1.5 sm:gap-2", variant === "full" ? "w-full sm:w-auto sm:min-w-[230px]" : "w-full")}>
+            <div className="flex-1">
+              {cartItem ? (
+                <div className="flex h-9 sm:h-11 w-full items-center justify-between gap-1 sm:gap-2">
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      updateQuantity(product.id, cartItem.quantity - 1);
+                    }}
+                    className="flex h-full flex-1 items-center justify-center rounded-md sm:rounded-lg bg-navy-900 text-lg sm:text-xl font-medium text-white transition hover:bg-navy-800"
+                  >
+                    -
+                  </button>
+                  <div className="flex h-full w-9 sm:w-12 shrink-0 items-center justify-center rounded-md sm:rounded-lg border border-navy-900/20 text-[13px] sm:text-[15px] font-bold text-navy-900 bg-white">
+                    {cartItem.quantity}
+                  </div>
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      updateQuantity(product.id, cartItem.quantity + 1);
+                    }}
+                    disabled={cartItem.quantity >= product.stock}
+                    className="flex h-full flex-1 items-center justify-center rounded-md sm:rounded-lg bg-navy-900 text-lg sm:text-xl font-medium text-white transition hover:bg-navy-800 disabled:opacity-40"
+                  >
+                    +
+                  </button>
                 </div>
+              ) : (
                 <button
                   onClick={(e) => {
                     e.preventDefault();
-                    updateQuantity(product.id, cartItem.quantity + 1);
+                    addItem(product.id);
                   }}
-                  disabled={cartItem.quantity >= product.stock}
-                  className="flex h-full flex-1 items-center justify-center rounded-md sm:rounded-lg bg-navy-900 text-lg sm:text-xl font-medium text-white transition hover:bg-navy-800 disabled:opacity-40"
+                  disabled={outOfStock}
+                  className="flex h-9 sm:h-11 w-full items-center justify-center gap-1.5 sm:gap-2 rounded-md sm:rounded-lg bg-navy-900 px-2 sm:px-3 text-[11px] sm:text-sm font-medium text-white transition hover:bg-navy-800 disabled:opacity-40"
                 >
-                  +
+                  <ShoppingCart size={14} className="sm:w-4 sm:h-4" />
+                  <span>
+                    <span className="hidden sm:inline">{outOfStock ? "Tugagan" : "Savatchaga"}</span>
+                    <span className="sm:hidden">{outOfStock ? "Yo'q" : "Savat"}</span>
+                  </span>
                 </button>
-              </div>
-            ) : (
-              <button
-                onClick={(e) => {
-                  e.preventDefault();
-                  addItem(product.id);
-                }}
-                disabled={outOfStock}
-                className="flex h-9 sm:h-11 w-full items-center justify-center gap-1.5 sm:gap-2 rounded-md sm:rounded-lg bg-navy-900 px-2 sm:px-4 text-[11px] sm:text-sm font-medium text-white transition hover:bg-navy-800 disabled:opacity-40"
-              >
-                <ShoppingCart size={14} className="sm:w-4 sm:h-4" />
-                <span>
-                  <span className="hidden sm:inline">{outOfStock ? "Tugagan" : "Savatchaga qo'shish"}</span>
-                  <span className="sm:hidden">{outOfStock ? "Yo'q" : "Savatchaga"}</span>
-                </span>
-              </button>
-            )}
+              )}
+            </div>
+
+            {/* Direct Telegram Buy Button */}
+            <a
+              href={`https://t.me/Grandwatch_Admin?text=${encodeURIComponent(`Assalomu alaykum! Men ushbu soatni buyurtma qilmoqchi edim:\n\n📦 ${product.name}\n💰 Narxi: ${formatSom(product.price)}`)}`}
+              target="_blank"
+              rel="noreferrer"
+              title="Telegram orqali 1 bosishda buyurtma berish"
+              onClick={(e) => e.stopPropagation()}
+              className="flex h-9 sm:h-11 w-9 sm:w-11 shrink-0 items-center justify-center rounded-md sm:rounded-lg border border-sky-200 bg-sky-50 text-sky-600 hover:bg-sky-500 hover:text-white transition shadow-xs"
+            >
+              <Send size={15} />
+            </a>
           </div>
         </div>
       </div>

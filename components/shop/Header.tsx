@@ -48,8 +48,28 @@ export function Header({
 
   return (
     <>
-      <div className="h-[76px] w-full shrink-0" />
+      <div className="h-[76px] sm:h-[106px] w-full shrink-0" />
       <header className="fixed left-0 top-0 w-full z-40 border-b border-navy-100 bg-white/95 backdrop-blur">
+        {/* Top Announcement Bar (like khan.store) */}
+        <div className="bg-navy-950 text-white/85 border-b border-navy-800 text-[11px] py-1 px-4 hidden sm:block">
+          <div className="container-shop flex justify-between items-center">
+            <div className="flex items-center gap-2">
+              <span className="text-gold-400 font-bold tracking-wider">✦ GRAND WATCH SHOP</span>
+              <span className="text-white/30">|</span>
+              <span className="text-white/75">Eksklyuziv va Sifatli Soatlar Do'koni</span>
+            </div>
+            <div className="flex items-center gap-4 text-xs font-medium">
+              <a href="tel:+998977657180" className="hover:text-gold-400 transition flex items-center gap-1">
+                <span className="text-gold-400 font-semibold">+998 97 765 71 80</span>
+              </a>
+              <span className="text-white/30">|</span>
+              <a href="https://t.me/Grandwatch_Admin" target="_blank" rel="noreferrer" className="hover:text-sky-300 transition text-sky-400">
+                Telegram: @Grandwatch_Admin
+              </a>
+            </div>
+          </div>
+        </div>
+
         <div className="container-shop flex h-[76px] items-center justify-between gap-4">
           {/* Left: Logo & Menu & Desktop Katalog */}
           <div className="flex items-center gap-4 lg:gap-6 lg:w-[280px] shrink-0">
