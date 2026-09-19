@@ -522,14 +522,24 @@ export function Header({
               </h3>
               <div className="space-y-1">
                 {!isAuthed ? (
-                  <Link
-                    href="/login"
-                    className="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-medium text-navy-900 hover:bg-navy-50"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    <User size={18} />
-                    Kirish / Ro'yxatdan o'tish
-                  </Link>
+                  <>
+                    <Link
+                      href="/login"
+                      className="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-medium text-navy-900 hover:bg-navy-50"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      <User size={18} />
+                      Kirish / Ro'yxatdan o'tish
+                    </Link>
+                    <Link
+                      href="/admin"
+                      className="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-semibold text-gold-600 bg-gold-500/10 hover:bg-gold-500/20"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      <LayoutDashboard size={18} className="text-gold-500" />
+                      Admin panel
+                    </Link>
+                  </>
                 ) : (
                   <>
                     {(user?.role === "admin" || user?.role === "super_admin") && (

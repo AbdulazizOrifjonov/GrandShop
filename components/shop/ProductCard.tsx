@@ -165,7 +165,7 @@ export function ProductCard({
     >
       <div
         className={cn(
-          "relative overflow-hidden rounded-xl sm:rounded-2xl bg-navy-50/70 shrink-0",
+          "relative overflow-hidden rounded-lg sm:rounded-xl bg-navy-50/70 shrink-0",
           variant === "full" ? "h-40 w-40 md:h-48 md:w-48" : "mb-[3px] sm:mb-2.5 aspect-[4/5] w-full"
         )}
       >
@@ -304,11 +304,11 @@ export function ProductCard({
                       e.preventDefault();
                       updateQuantity(product.id, cartItem.quantity - 1);
                     }}
-                    className="flex h-full flex-1 items-center justify-center rounded-xl sm:rounded-2xl bg-navy-900 text-base sm:text-xl font-medium text-white transition hover:bg-navy-800"
+                    className="flex h-full flex-1 items-center justify-center rounded-lg sm:rounded-xl bg-navy-900 text-base sm:text-xl font-medium text-white transition hover:bg-navy-800"
                   >
                     -
                   </button>
-                  <div className="flex h-full w-8 sm:w-12 shrink-0 items-center justify-center rounded-xl sm:rounded-2xl border border-navy-900/20 text-xs sm:text-[15px] font-bold text-navy-900 bg-white">
+                  <div className="flex h-full w-8 sm:w-12 shrink-0 items-center justify-center rounded-lg sm:rounded-xl border border-navy-900/20 text-xs sm:text-[15px] font-bold text-navy-900 bg-white">
                     {cartItem.quantity}
                   </div>
                   <button
@@ -317,7 +317,7 @@ export function ProductCard({
                       updateQuantity(product.id, cartItem.quantity + 1);
                     }}
                     disabled={cartItem.quantity >= product.stock}
-                    className="flex h-full flex-1 items-center justify-center rounded-xl sm:rounded-2xl bg-navy-900 text-base sm:text-xl font-medium text-white transition hover:bg-navy-800 disabled:opacity-40"
+                    className="flex h-full flex-1 items-center justify-center rounded-lg sm:rounded-xl bg-navy-900 text-base sm:text-xl font-medium text-white transition hover:bg-navy-800 disabled:opacity-40"
                   >
                     +
                   </button>
@@ -329,7 +329,7 @@ export function ProductCard({
                     addItem(product.id);
                   }}
                   disabled={outOfStock}
-                  className="flex h-8 sm:h-11 w-full items-center justify-center gap-1 sm:gap-2 rounded-xl sm:rounded-2xl bg-navy-900 px-1.5 sm:px-3 text-[11px] sm:text-sm font-medium text-white transition hover:bg-navy-800 disabled:opacity-40"
+                  className="flex h-8 sm:h-11 w-full items-center justify-center gap-1 sm:gap-2 rounded-lg sm:rounded-xl bg-navy-900 px-1.5 sm:px-3 text-[11px] sm:text-sm font-medium text-white transition hover:bg-navy-800 disabled:opacity-40"
                 >
                   <ShoppingCart size={13} className="sm:w-4 sm:h-4" />
                   <span>
@@ -352,7 +352,7 @@ export function ProductCard({
                 const text = `Assalomu alaykum! Men ushbu soatni buyurtma qilmoqchi edim:\n\n📦 Mahsulot: ${product.name}\n💰 Narxi: ${formatSom(product.price)}\n\n🔗 Havola:\n${url}`;
                 e.currentTarget.href = `https://t.me/Grandwatch_Admin?text=${encodeURIComponent(text)}`;
               }}
-              className="flex h-8 sm:h-11 w-8 sm:w-11 shrink-0 items-center justify-center rounded-xl sm:rounded-2xl border border-sky-200 bg-sky-50 text-sky-600 hover:bg-sky-500 hover:text-white transition shadow-xs"
+              className="flex h-8 sm:h-11 w-8 sm:w-11 shrink-0 items-center justify-center rounded-lg sm:rounded-xl border border-sky-200 bg-sky-50 text-sky-600 hover:bg-sky-500 hover:text-white transition shadow-xs"
             >
               <Send size={13} className="sm:w-3.5 sm:h-3.5" />
             </a>

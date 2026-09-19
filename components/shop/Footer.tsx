@@ -33,6 +33,7 @@ export function Footer() {
             <li><Link href="/returns">Qaytarish</Link></li>
             <li><Link href="/privacy">Maxfiylik siyosati</Link></li>
             <li><Link href="/contact">Aloqa</Link></li>
+            <li><Link href="/admin" className="text-gold-400 hover:text-gold-300 font-medium">⚙️ Admin panel</Link></li>
           </ul>
         </div>
 
