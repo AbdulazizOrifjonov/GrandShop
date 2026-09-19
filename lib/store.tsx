@@ -7,7 +7,7 @@ import {
   useEffect,
   useState,
 } from "react";
-import { Category, Order, OrderStatus, Product, Slider } from "@/types/database";
+import { Category, Order, OrderStatus, Product, Promocode, Slider } from "@/types/database";
 import { supabase } from "@/lib/supabase";
 
 function uid(prefix: string) {
@@ -19,6 +19,7 @@ interface StoreValue {
   categories: Category[];
   sliders: Slider[];
   orders: Order[];
+  promocodes: Promocode[];
   ready: boolean;
 
   addProduct: (p: Partial<Product>) => Product;
@@ -36,6 +37,12 @@ interface StoreValue {
 
   createOrder: (o: Omit<Order, "id" | "order_number" | "status" | "created_at">) => Order;
   updateOrderStatus: (id: string, status: OrderStatus) => void;
+
+  addPromocode: (p: Partial<Promocode>) => Promocode;
+  updatePromocode: (id: string, p: Partial<Promocode>) => void;
+  deletePromocode: (id: string) => void;
+  togglePromocode: (id: string) => void;
+  applyPromocode: (code: string, subtotal: number) => { ok: boolean; promocode?: Promocode; discount: number; error?: string };
   
   profileSidebarOpen: boolean;
   setProfileSidebarOpen: (v: boolean) => void;
@@ -43,11 +50,41 @@ interface StoreValue {
 
 const StoreContext = createContext<StoreValue | null>(null);
 
+const DEFAULT_PROMOCODES: Promocode[] = [
+  {
+    id: "promo-grand10",
+    code: "GRAND10",
+    discount_type: "percent",
+    discount_value: 10,
+    min_order_amount: 2000000,
+    max_discount_amount: 500000,
+    usage_limit: 100,
+    used_count: 0,
+    expires_at: null,
+    is_active: true,
+    created_at: new Date().toISOString(),
+  },
+  {
+    id: "promo-vip",
+    code: "VIP200",
+    discount_type: "fixed",
+    discount_value: 200000,
+    min_order_amount: 2000000,
+    max_discount_amount: null,
+    usage_limit: null,
+    used_count: 0,
+    expires_at: null,
+    is_active: true,
+    created_at: new Date().toISOString(),
+  },
+];
+
 export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [sliders, setSliders] = useState<Slider[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
+  const [promocodes, setPromocodes] = useState<Promocode[]>(DEFAULT_PROMOCODES);
   const [ready, setReady] = useState(false);
   const [profileSidebarOpen, setProfileSidebarOpen] = useState(true);
 
@@ -67,7 +104,39 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         ]);
         if (p) setProducts(p);
         if (c) setCategories(c);
-        if (s) setSliders(s);
+        if (s) {
+          const promoConfig = s.find((item) => item.id === "system_promocodes");
+          if (promoConfig && promoConfig.subtitle) {
+            try {
+              const parsed = JSON.parse(promoConfig.subtitle);
+              if (Array.isArray(parsed) && parsed.length > 0) {
+                setPromocodes(parsed);
+                try { localStorage.setItem("gws_promocodes", JSON.stringify(parsed)); } catch {}
+              } else {
+                setPromocodes(DEFAULT_PROMOCODES);
+              }
+            } catch (err) {
+              console.error("Error parsing promocodes:", err);
+              setPromocodes(DEFAULT_PROMOCODES);
+            }
+          } else {
+            let loaded = false;
+            try {
+              const local = typeof window !== "undefined" ? localStorage.getItem("gws_promocodes") : null;
+              if (local) {
+                const parsed = JSON.parse(local);
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                  setPromocodes(parsed);
+                  loaded = true;
+                }
+              }
+            } catch {}
+            if (!loaded) {
+              setPromocodes(DEFAULT_PROMOCODES);
+            }
+          }
+          setSliders(s.filter((item) => !item.id.startsWith("system_")));
+        }
         if (o) setOrders(o);
       } catch (e) {
         console.error(e);
@@ -243,6 +312,118 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
+  const syncPromocodes = useCallback((list: Promocode[]) => {
+    setPromocodes(list);
+    try {
+      localStorage.setItem("gws_promocodes", JSON.stringify(list));
+    } catch {}
+    supabase
+      .from("sliders")
+      .upsert({
+        id: "system_promocodes",
+        title: "CONFIG_PROMOCODES",
+        subtitle: JSON.stringify(list),
+        image_url: "https://example.com/config.png",
+        button_text: null,
+        link: null,
+        sort_order: 9999,
+        is_active: false,
+      })
+      .then(({ error }) => {
+        if (error) console.error("Error syncing promocodes:", error);
+      });
+  }, []);
+
+  const addPromocode = useCallback(
+    (p: Partial<Promocode>) => {
+      const newPromo: Promocode = {
+        id: crypto.randomUUID?.() || uid("pr"),
+        code: (p.code || "").toUpperCase().trim(),
+        discount_type: p.discount_type || "percent",
+        discount_value: Number(p.discount_value) || 0,
+        min_order_amount: Number(p.min_order_amount) || 0,
+        max_discount_amount: p.max_discount_amount ? Number(p.max_discount_amount) : null,
+        usage_limit: p.usage_limit ? Number(p.usage_limit) : null,
+        used_count: 0,
+        expires_at: p.expires_at || null,
+        is_active: p.is_active ?? true,
+        created_at: new Date().toISOString(),
+      };
+      const updated = [newPromo, ...promocodes];
+      syncPromocodes(updated);
+      return newPromo;
+    },
+    [promocodes, syncPromocodes]
+  );
+
+  const updatePromocode = useCallback(
+    (id: string, p: Partial<Promocode>) => {
+      const updated = promocodes.map((item) =>
+        item.id === id ? { ...item, ...p } : item
+      );
+      syncPromocodes(updated);
+    },
+    [promocodes, syncPromocodes]
+  );
+
+  const deletePromocode = useCallback(
+    (id: string) => {
+      const updated = promocodes.filter((item) => item.id !== id);
+      syncPromocodes(updated);
+    },
+    [promocodes, syncPromocodes]
+  );
+
+  const togglePromocode = useCallback(
+    (id: string) => {
+      const updated = promocodes.map((item) =>
+        item.id === id ? { ...item, is_active: !item.is_active } : item
+      );
+      syncPromocodes(updated);
+    },
+    [promocodes, syncPromocodes]
+  );
+
+  const applyPromocode = useCallback(
+    (codeStr: string, subtotal: number) => {
+      const clean = codeStr.toUpperCase().trim();
+      const found = promocodes.find((p) => p.code.toUpperCase() === clean);
+
+      if (!found || !found.is_active) {
+        return { ok: false, discount: 0, error: "Bunday promokod mavjud emas yoki faol emas." };
+      }
+
+      if (found.expires_at && new Date(found.expires_at).getTime() < Date.now()) {
+        return { ok: false, discount: 0, error: "Ushbu promokodning amal qilish muddati tugagan." };
+      }
+
+      if (found.usage_limit && found.used_count >= found.usage_limit) {
+        return { ok: false, discount: 0, error: "Ushbu promokoddan foydalanish soni cheklangan va tugagan." };
+      }
+
+      if (subtotal < found.min_order_amount) {
+        return {
+          ok: false,
+          discount: 0,
+          error: `Ushbu promokodni ishlatish uchun buyurtma summasi kamida ${found.min_order_amount.toLocaleString("en-US").replace(/,/g, " ")} so'm bo'lishi kerak. Sizda: ${subtotal.toLocaleString("en-US").replace(/,/g, " ")} so'm.`,
+        };
+      }
+
+      let discount = 0;
+      if (found.discount_type === "percent") {
+        discount = Math.round((subtotal * found.discount_value) / 100);
+        if (found.max_discount_amount && found.max_discount_amount > 0) {
+          discount = Math.min(discount, found.max_discount_amount);
+        }
+      } else {
+        discount = Math.min(found.discount_value, subtotal);
+      }
+
+      return { ok: true, promocode: found, discount };
+    },
+    [promocodes]
+  );
+
   return (
     <StoreContext.Provider
       value={{
@@ -250,6 +431,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         categories,
         sliders,
         orders,
+        promocodes,
         ready,
         addProduct,
         updateProduct,
@@ -263,6 +445,11 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         reorderSlider,
         createOrder,
         updateOrderStatus,
+        addPromocode,
+        updatePromocode,
+        deletePromocode,
+        togglePromocode,
+        applyPromocode,
         profileSidebarOpen,
         setProfileSidebarOpen,
       }}

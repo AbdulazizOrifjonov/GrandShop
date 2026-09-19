@@ -11,6 +11,7 @@ import {
   ImagePlus,
   PlusCircle,
   Tag as TagIcon,
+  Ticket,
 } from "lucide-react";
 import Link from "next/link";
 import {
@@ -179,6 +180,9 @@ export default function AdminDashboardPage() {
                 </Link>
                 <Link href="/admin/sliders" className="flex flex-col items-center gap-2 rounded-lg border border-navy-100 py-4 hover:bg-navy-50">
                   <ImagePlus size={18} /> Yangi slider
+                </Link>
+                <Link href="/admin/promocodes" className="flex flex-col items-center gap-2 rounded-lg border border-navy-100 py-4 hover:bg-navy-50">
+                  <Ticket size={18} /> Promokodlar
                 </Link>
                 <Link href="/admin/sale" className="flex flex-col items-center gap-2 rounded-lg border border-navy-100 py-4 hover:bg-navy-50">
                   <TagIcon size={18} /> Aksiya qo'shish

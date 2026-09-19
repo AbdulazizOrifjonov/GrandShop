@@ -15,7 +15,8 @@ export async function POST(req: Request) {
       `👤 **Mijoz:** ${data.fullName}\n` +
       `📞 **Telefon:** ${data.phone}\n` +
       `📍 **Manzil:** ${data.address}\n` +
-      `${data.note ? `📝 **Izoh:** ${data.note}\n` : ""}\n` +
+      `${data.note ? `📝 **Izoh:** ${data.note}\n` : ""}` +
+      `${data.promoCode ? `🎟 **Promokod:** \`${data.promoCode}\` (-${formatPrice(data.discount || 0)} UZS)\n` : ""}\n` +
       `📦 **Mahsulotlar:**\n` +
       data.items.map((i: any) => `- ${i.name} (${i.quantity} dona) - ${formatPrice(i.price)} UZS`).join("\n") +
       `\n\n💵 **Jami summa:** ${formatPrice(data.total)} UZS\n` +

@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { CheckCircle2 } from "lucide-react";
 import { Header } from "@/components/shop/Header";
 import { Footer } from "@/components/shop/Footer";
@@ -24,14 +24,25 @@ export default function CheckoutPage() {
   const [note, setNote] = useState("");
   const [placedOrder, setPlacedOrder] = useState<string | null>(null);
   const [error, setError] = useState("");
+  const [appliedPromo, setAppliedPromo] = useState<{ code: string; discount: number; min_order_amount: number } | null>(null);
+
+  useEffect(() => {
+    try {
+      const saved = sessionStorage.getItem("gws_applied_promo");
+      if (saved) {
+        setAppliedPromo(JSON.parse(saved));
+      }
+    } catch {}
+  }, []);
 
   const detailed = items
     .map((i) => ({ item: i, product: products.find((p) => p.id === i.productId) }))
     .filter((x) => x.product);
 
   const subtotal = detailed.reduce((sum, x) => sum + x.product!.price * x.item.quantity, 0);
+  const discountAmount = appliedPromo && subtotal >= appliedPromo.min_order_amount ? appliedPromo.discount : 0;
   const deliveryFee = subtotal >= 500000 || subtotal === 0 ? 0 : 30000;
-  const total = subtotal + deliveryFee;
+  const total = Math.max(0, subtotal - discountAmount) + deliveryFee;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -60,6 +71,9 @@ export default function CheckoutPage() {
           address,
           note,
           items: itemsData,
+          subtotal,
+          discount: discountAmount,
+          promoCode: appliedPromo?.code || null,
           total,
           deliveryFee
         })
@@ -73,10 +87,10 @@ export default function CheckoutPage() {
       full_name: fullName,
       phone,
       address,
-      note: note || null,
+      note: note ? (appliedPromo ? `${note} (Promokod: ${appliedPromo.code})` : note) : (appliedPromo ? `Promokod: ${appliedPromo.code}` : null),
       subtotal,
       delivery_fee: deliveryFee,
-      discount: 0,
+      discount: discountAmount,
       total,
       items: detailed.map((d) => ({
         id: "",
@@ -89,6 +103,7 @@ export default function CheckoutPage() {
       })),
     });
     clear();
+    try { sessionStorage.removeItem("gws_applied_promo"); } catch {}
     setPlacedOrder(order.order_number);
   }
 
@@ -211,6 +226,12 @@ export default function CheckoutPage() {
             <div className="space-y-2 border-t border-navy-100 pt-3 text-sm">
               <div className="flex justify-between"><span className="text-navy-900/60">Mahsulotlar</span><span>{formatSom(subtotal)}</span></div>
               <div className="flex justify-between"><span className="text-navy-900/60">Yetkazib berish</span><span>{deliveryFee ? formatSom(deliveryFee) : "Bepul"}</span></div>
+              {discountAmount > 0 && (
+                <div className="flex justify-between text-success font-semibold">
+                  <span>Chegirma ({appliedPromo?.code})</span>
+                  <span>- {formatSom(discountAmount)}</span>
+                </div>
+              )}
               <div className="flex justify-between text-lg font-bold"><span>Jami</span><span>{formatSom(total)}</span></div>
             </div>
             <button

@@ -107,3 +107,19 @@ export interface CartItem {
 export interface WishlistItem {
   productId: string;
 }
+
+export type PromoDiscountType = "percent" | "fixed";
+
+export interface Promocode {
+  id: string;
+  code: string;
+  discount_type: PromoDiscountType;
+  discount_value: number;
+  min_order_amount: number;
+  max_discount_amount?: number | null;
+  usage_limit?: number | null;
+  used_count: number;
+  expires_at?: string | null;
+  is_active: boolean;
+  created_at: string;
+}

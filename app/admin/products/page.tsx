@@ -1,12 +1,13 @@
 "use client";
 
 import Image from "next/image";
-import { useMemo, useState } from "react";
-import { Eye, Package, Pencil, Plus, Trash2, CircleDot, AlertTriangle, Ban } from "lucide-react";
+import { useMemo, useState, useEffect } from "react";
+import { Eye, Package, Pencil, Plus, Trash2, CircleDot, AlertTriangle, Ban, CheckCircle2 } from "lucide-react";
 import { AdminHeader } from "@/components/admin/AdminHeader";
 import { StatCard } from "@/components/admin/StatCard";
 import { Modal } from "@/components/admin/Modal";
 import { ImageUploader } from "@/components/admin/ImageUploader";
+import { AdminPagination } from "@/components/admin/AdminPagination";
 import { useStore } from "@/lib/store";
 import { Product } from "@/types/database";
 import { formatSom } from "@/lib/utils";
@@ -19,7 +20,8 @@ const EMPTY_FORM = {
   category_id: "",
   brand: "",
   sku: "",
-  stock: "",
+  mechanism: "Avtomatik",
+  stock: "99",
   image: null as string | null,
   images: [] as string[],
   is_active: true,
@@ -32,9 +34,14 @@ export default function AdminProductsPage() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Product | null>(null);
+  const [deletingProduct, setDeletingProduct] = useState<Product | null>(null);
   const [form, setForm] = useState(EMPTY_FORM);
   const [page, setPage] = useState(1);
-  const pageSize = 8;
+  const [pageSize, setPageSize] = useState(12);
+
+  useEffect(() => {
+    setPage(1);
+  }, [search, categoryFilter, statusFilter, pageSize]);
 
   const filtered = useMemo(() => {
     return products.filter((p) => {
@@ -60,10 +67,19 @@ export default function AdminProductsPage() {
     setModalOpen(true);
   }
 
-  function deleteProduct(id: string) {
-    if (confirm("Rostdan ham ushbu mahsulotni o'chirmoqchimisiz?")) {
-      storeDeleteProduct(id);
+  function confirmDelete(p: Product) {
+    setDeletingProduct(p);
+  }
+
+  function handleDelete() {
+    if (deletingProduct) {
+      storeDeleteProduct(deletingProduct.id);
+      setDeletingProduct(null);
     }
+  }
+
+  function toggleActive(p: Product) {
+    updateProduct(p.id, { is_active: !p.is_active });
   }
 
   function openEdit(p: Product) {
@@ -76,6 +92,7 @@ export default function AdminProductsPage() {
       category_id: p.category_id ?? "",
       brand: p.brand ?? "",
       sku: p.sku ?? "",
+      mechanism: p.mechanism || "Avtomatik",
       stock: String(p.stock),
       image: p.image,
       images: p.images ? p.images.map(img => img.url) : [],
@@ -94,7 +111,8 @@ export default function AdminProductsPage() {
       category_id: form.category_id || null,
       brand: form.brand,
       sku: form.sku,
-      stock: Number(form.stock) || 0,
+      mechanism: form.mechanism || "Avtomatik",
+      stock: Number(form.stock) || 99,
       image: form.image,
       images: form.images.map((url, i) => ({ id: `img-${Date.now()}-${i}`, product_id: editing?.id || "", url, sort_order: i + 1 })),
       is_active: form.is_active,
@@ -180,17 +198,45 @@ export default function AdminProductsPage() {
                     <td className="p-3">{p.brand}</td>
                     <td className="p-3">{formatSom(p.price)}</td>
                     <td className="p-3">
-                      {!p.is_active ? (
-                        <span className="flex items-center gap-1 text-xs text-navy-900/50"><span className="h-2 w-2 rounded-full bg-navy-900/30" /> Nofaol</span>
-                      ) : (
-                        <span className="flex items-center gap-1 text-xs text-success"><span className="h-2 w-2 rounded-full bg-success" /> Faol</span>
-                      )}
+                      <button
+                        type="button"
+                        onClick={() => toggleActive(p)}
+                        title={p.is_active ? "Nofaol qilish uchun bosing" : "Faollashtirish uchun bosing"}
+                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold transition shadow-2xs ${
+                          p.is_active
+                            ? "bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100"
+                            : "bg-slate-100 text-slate-500 border border-slate-200 hover:bg-slate-200"
+                        }`}
+                      >
+                        <span className={`h-1.5 w-1.5 rounded-full ${p.is_active ? "bg-emerald-500" : "bg-slate-400"}`} />
+                        <span>{p.is_active ? "Faol" : "Nofaol"}</span>
+                      </button>
                     </td>
                     <td className="p-3">
-                      <div className="flex items-center gap-1">
-                        <button onClick={() => openEdit(p)} className="rounded-lg border border-navy-100 p-1.5 hover:bg-navy-50"><Pencil size={14} /></button>
-                        <a href={`/products/${p.slug}`} target="_blank" className="rounded-lg border border-navy-100 p-1.5 hover:bg-navy-50"><Eye size={14} /></a>
-                        <button onClick={() => deleteProduct(p.id)} className="rounded-lg border border-navy-100 p-1.5 text-danger hover:bg-danger/5"><Trash2 size={14} /></button>
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          onClick={() => openEdit(p)}
+                          title="Tahrirlash"
+                          className="rounded-lg border border-navy-100 p-1.5 text-navy-700 hover:bg-navy-50 hover:text-navy-950 transition"
+                        >
+                          <Pencil size={14} />
+                        </button>
+                        <a
+                          href={`/products/${p.slug}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          title="Saytda ochish"
+                          className="rounded-lg border border-navy-100 p-1.5 text-navy-700 hover:bg-navy-50 hover:text-gold-600 transition"
+                        >
+                          <Eye size={14} />
+                        </a>
+                        <button
+                          onClick={() => confirmDelete(p)}
+                          title="O'chirish"
+                          className="rounded-lg border border-red-100 p-1.5 text-danger hover:bg-red-50 transition"
+                        >
+                          <Trash2 size={14} />
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -203,16 +249,18 @@ export default function AdminProductsPage() {
           </table>
         </div>
 
-        <div className="mt-4 flex items-center justify-between text-sm text-navy-900/50">
-          <span>{filtered.length === 0 ? 0 : (page - 1) * pageSize + 1}-{Math.min(page * pageSize, filtered.length)} dan {filtered.length} ta mahsulot</span>
-          <div className="flex gap-1">
-            {Array.from({ length: totalPages }).map((_, i) => (
-              <button key={i} onClick={() => setPage(i + 1)} className={`h-8 w-8 rounded-lg ${page === i + 1 ? "bg-navy-900 text-white" : "border border-navy-100"}`}>
-                {i + 1}
-              </button>
-            ))}
-          </div>
-        </div>
+        <AdminPagination
+          page={page}
+          totalPages={totalPages}
+          totalItems={filtered.length}
+          pageSize={pageSize}
+          onPageChange={(p) => setPage(p)}
+          onPageSizeChange={(sz) => {
+            setPageSize(sz);
+            setPage(1);
+          }}
+          pageSizeOptions={[12, 24, 48, 96]}
+        />
       </div>
 
       <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={editing ? "Mahsulotni tahrirlash" : "Yangi mahsulot qo'shish"} width="max-w-2xl">
@@ -284,13 +332,23 @@ export default function AdminProductsPage() {
               <label className="mb-1 block text-sm font-medium">SKU</label>
               <input value={form.sku} onChange={(e) => setForm((f) => ({ ...f, sku: e.target.value }))} className="w-full rounded-lg border border-navy-100 px-3 py-2.5 text-sm" />
             </div>
-            <div className="hidden">
-              <label className="mb-1 block text-sm font-medium">Soni (stock)</label>
-              <input type="number" value={form.stock} onChange={(e) => setForm((f) => ({ ...f, stock: e.target.value }))} className="w-full rounded-lg border border-navy-100 px-3 py-2.5 text-sm" />
+            <div>
+              <label className="mb-1 block text-sm font-medium">Mexanizm</label>
+              <select
+                value={form.mechanism}
+                onChange={(e) => setForm((f) => ({ ...f, mechanism: e.target.value }))}
+                className="w-full rounded-lg border border-navy-100 px-3 py-2.5 text-sm bg-white"
+              >
+                <option value="Avtomatik">Avtomatik</option>
+                <option value="Kvars (Batareyka)">Kvars (Batareyka)</option>
+                <option value="Mexanik">Mexanik</option>
+                <option value="Smart / Elektron">Smart / Elektron</option>
+                <option value="Xronograf">Xronograf</option>
+              </select>
             </div>
             <div className="flex items-center gap-2 pt-6">
-              <input id="active" type="checkbox" checked={form.is_active} onChange={(e) => setForm((f) => ({ ...f, is_active: e.target.checked }))} />
-              <label htmlFor="active" className="text-sm">Faol (saytda ko'rinadi)</label>
+              <input id="active" type="checkbox" checked={form.is_active} onChange={(e) => setForm((f) => ({ ...f, is_active: e.target.checked }))} className="h-4 w-4 rounded border-navy-200 text-navy-900" />
+              <label htmlFor="active" className="text-sm font-medium">Faol (saytda ko'rinadi)</label>
             </div>
           </div>
 
@@ -301,6 +359,31 @@ export default function AdminProductsPage() {
             </button>
           </div>
         </form>
+      </Modal>
+
+      {/* Delete Confirmation Modal */}
+      <Modal open={!!deletingProduct} onClose={() => setDeletingProduct(null)} title="Mahsulotni o'chirish" width="max-w-md">
+        <div className="space-y-4">
+          <p className="text-sm text-navy-900/80">
+            Haqiqatan ham <strong className="text-navy-900">&ldquo;{deletingProduct?.name}&rdquo;</strong> mahsulotini o'chirmoqchimisiz? Ushbu amalni ortga qaytarib bo'lmaydi.
+          </p>
+          <div className="flex justify-end gap-3 pt-2">
+            <button
+              type="button"
+              onClick={() => setDeletingProduct(null)}
+              className="rounded-lg border border-navy-200 px-4 py-2 text-sm font-semibold text-navy-900 hover:bg-navy-50 transition"
+            >
+              Bekor qilish
+            </button>
+            <button
+              type="button"
+              onClick={handleDelete}
+              className="rounded-lg bg-danger px-4 py-2 text-sm font-semibold text-white hover:bg-danger/90 transition shadow-xs"
+            >
+              O'chirish
+            </button>
+          </div>
+        </div>
       </Modal>
     </div>
   );

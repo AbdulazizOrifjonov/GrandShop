@@ -9,6 +9,7 @@ import {
   Heart,
   Images,
   Tag,
+  Ticket,
   ShoppingCart,
   Users,
   ShieldCheck,
@@ -24,6 +25,7 @@ const NAV = [
   { href: "/admin", label: "Boshqaruv paneli", icon: LayoutDashboard },
   { href: "/admin/products", label: "Mahsulotlar", icon: Package },
   { href: "/admin/categories", label: "Kategoriyalar", icon: Tag },
+  { href: "/admin/promocodes", label: "Promokodlar", icon: Ticket },
   { href: "/admin/sliders", label: "Sliderlar", icon: Images },
 
   { href: "/admin/orders", label: "Buyurtmalar", icon: ShoppingCart },
