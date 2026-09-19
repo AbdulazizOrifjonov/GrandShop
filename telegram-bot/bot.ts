@@ -1,18 +1,21 @@
+import * as dotenv from "dotenv";
+dotenv.config();
+
 import { Telegraf, Context } from "telegraf";
 import { message } from "telegraf/filters";
 import { parseProductText, ParsedProduct } from "./aiParser";
 import { insertProduct, uploadImageToSupabase } from "./supabaseClient";
 import { createClient } from "@supabase/supabase-js";
 
-const token = process.env.TELEGRAM_BOT_TOKEN;
-const adminId = process.env.TELEGRAM_ADMIN_ID;
+const token = process.env.TELEGRAM_BOT_TOKEN || "8304513002:AAHuB-J12OGOK4iMiefk-P-EKDh2S-tkKk4";
+const adminId = process.env.TELEGRAM_ADMIN_ID || "1594150529";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL || "https://jcxuntvtoemnhnsxjwrh.supabase.co",
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "sb_publishable_4zhII_zDXEp-yRK40kHyLQ_PLjaJ4dL"
 );
 
-export const bot = new Telegraf(token || "");
+export const bot = new Telegraf(token);
 
 interface PendingProduct {
   mediaGroupId: string;
@@ -27,18 +30,36 @@ interface PendingProduct {
 const pendingGroups = new Map<string, PendingProduct>();
 
 bot.use(async (ctx, next) => {
+  // If it's a channel post
+  if (ctx.channelPost) {
+    return next();
+  }
+
   if (ctx.from) {
-    const allowedAdmins = [adminId, "615329280"];
-    if (!allowedAdmins.includes(ctx.from.id.toString())) {
-      if (ctx.message) await ctx.reply("Access denied.");
+    const allowedAdmins = [
+      adminId,
+      process.env.TELEGRAM_ADMIN_ID,
+      "1594150529",
+      "615329280",
+    ].filter(Boolean) as string[];
+
+    const userIdStr = ctx.from.id.toString();
+    console.log(`[Telegram Bot] Xabar keldi: User ID ${userIdStr} (@${ctx.from.username || "no_user"})`);
+
+    if (!allowedAdmins.includes(userIdStr)) {
+      console.warn(`[Telegram Bot] Ruxsat yo'q: User ID ${userIdStr}`);
+      if (ctx.message) {
+        await ctx.reply(`⚠️ Kirish taqiqlandi.\nSizning Telegram ID raqamingiz: ${userIdStr}\n\nUshbu ID ni bot adminlari ro'yxatiga qo'shish kerak.`);
+      }
       return;
     }
   }
   return next();
 });
 
-bot.start((ctx) => ctx.reply("Salom! Menga mahsulotlarni forward qiling. Men ularni avtomatik tarzda analiz qilib, dublikatlarni tekshirib, saytga joylayman!"));
+bot.start((ctx) => ctx.reply("Salom! Menga mahsulot rasmi va ma'lumotlarini yuboring yoki forward qiling. Men ularni avtomatik tarzda analiz qilib, saytga joylayman!"));
 
+// Foydalanuvchi yoki guruhdan yuborilgan rasm
 bot.on(message("photo"), async (ctx) => {
   const mediaGroupId = ctx.message.media_group_id || `single_${ctx.message.message_id}`;
   const photos = ctx.message.photo;
@@ -57,6 +78,37 @@ bot.on(message("photo"), async (ctx) => {
     const group: PendingProduct = {
       mediaGroupId,
       messageId: ctx.message.message_id,
+      text: text,
+      photoIds: [bestPhoto.file_id],
+      photoUniqueId: uniqueId,
+      parsed: null,
+    };
+    group.timer = setTimeout(() => processMediaGroup(ctx, mediaGroupId), 3000);
+    pendingGroups.set(mediaGroupId, group);
+  }
+});
+
+// Kanalga joylangan rasm (Channel post)
+bot.on("channel_post", async (ctx) => {
+  const post = ctx.channelPost;
+  if (!post || !("photo" in post) || !post.photo) return;
+  const mediaGroupId = post.media_group_id || `single_${post.message_id}`;
+  const photos = post.photo;
+  const bestPhoto = photos[photos.length - 1];
+  const uniqueId = bestPhoto.file_unique_id;
+  const text = post.caption || "";
+
+  if (pendingGroups.has(mediaGroupId)) {
+    const group = pendingGroups.get(mediaGroupId)!;
+    group.photoIds.push(bestPhoto.file_id);
+    if (!group.photoUniqueId) group.photoUniqueId = uniqueId;
+    if (text && !group.text) group.text = text;
+    clearTimeout(group.timer);
+    group.timer = setTimeout(() => processMediaGroup(ctx, mediaGroupId), 3000);
+  } else {
+    const group: PendingProduct = {
+      mediaGroupId,
+      messageId: post.message_id,
       text: text,
       photoIds: [bestPhoto.file_id],
       photoUniqueId: uniqueId,
