@@ -1,4 +1,4 @@
-﻿import { Telegraf, Context } from "telegraf";
+import { Telegraf, Context } from "telegraf";
 import { message } from "telegraf/filters";
 import { parseProductText, ParsedProduct } from "./aiParser";
 import { insertProduct, uploadImageToSupabase } from "./supabaseClient";
@@ -39,7 +39,7 @@ bot.use(async (ctx, next) => {
 bot.start((ctx) => ctx.reply("Salom! Menga mahsulotlarni forward qiling. Men ularni avtomatik tarzda analiz qilib, dublikatlarni tekshirib, saytga joylayman!"));
 
 bot.on(message("photo"), async (ctx) => {
-  const mediaGroupId = ctx.message.media_group_id || \single_\\;
+  const mediaGroupId = ctx.message.media_group_id || `single_${ctx.message.message_id}`;
   const photos = ctx.message.photo;
   const bestPhoto = photos[photos.length - 1];
   const text = ctx.message.caption || "";
@@ -85,24 +85,26 @@ async function processMediaGroup(ctx: Context, mediaGroupId: string) {
     // Check duplicate in Supabase
     const { data: dup } = await supabase.from('products').select('id').eq('name', parsed.name).limit(1).single();
     if (dup) {
-      await ctx.telegram.editMessageText(ctx.chat?.id, statusMsg.message_id, undefined, \⚠️ **Dublikat:** \ avval qo'shilgan, o'tkazib yuborildi.\, { parse_mode: "Markdown" });
+      await ctx.telegram.editMessageText(ctx.chat?.id, statusMsg.message_id, undefined, `⚠️ **Dublikat:** ${parsed.name} avval qo'shilgan, o'tkazib yuborildi.`, { parse_mode: "Markdown" });
       return;
     }
 
-    await ctx.telegram.editMessageText(ctx.chat?.id, statusMsg.message_id, undefined, \⏳ Rasmlar yuklanmoqda... (\)\, { parse_mode: "Markdown" });
+    await ctx.telegram.editMessageText(ctx.chat?.id, statusMsg.message_id, undefined, `⏳ Rasmlar yuklanmoqda... (${parsed.name})`, { parse_mode: "Markdown" });
 
     const uploadedUrls: string[] = [];
     for (let i = 0; i < group.photoIds.length; i++) {
       const fileLink = await ctx.telegram.getFileLink(group.photoIds[i]);
-      const filename = \\_\.jpg\;
+      const filename = `${Date.now()}_${i}.jpg`;
       const publicUrl = await uploadImageToSupabase(fileLink.toString(), filename);
       if (publicUrl) uploadedUrls.push(publicUrl);
     }
 
+    // Auto assign category (Erkaklar = c1, Ayollar = c2)
     let catId = "c1"; 
     const lowerText = group.text.toLowerCase();
     if (lowerText.includes("ayollar") || lowerText.includes("zhenskiy")) catId = "c2";
 
+    // Extract brand from name
     let finalBrand = null;
     const knownBrands = ["Rolex", "Casio", "Tissot", "Seiko", "Orient", "Hublot", "Patek Philippe", "Rado", "Longines", "Omega", "Cartier"];
     for (const b of knownBrands) {
@@ -123,7 +125,7 @@ async function processMediaGroup(ctx: Context, mediaGroupId: string) {
       finalBrand
     );
 
-    await ctx.telegram.editMessageText(ctx.chat?.id, statusMsg.message_id, undefined, \✅ **Qo'shildi:** \\, { parse_mode: "Markdown" });
+    await ctx.telegram.editMessageText(ctx.chat?.id, statusMsg.message_id, undefined, `✅ **Qo'shildi:** ${parsed.name}`, { parse_mode: "Markdown" });
 
   } catch (err: any) {
     console.error(err);
