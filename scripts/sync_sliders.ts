@@ -5,7 +5,7 @@ const slides = [
     id: "s1",
     title: "Rolex Oyster Perpetual",
     subtitle: "Dunyoning eng mashhur va nufuzli Shveysariya soatlari. Original sifat va 12 oy kafolat.",
-    image_url: "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?q=80&w=1920&auto=format&fit=crop",
+    image_url: "https://images.unsplash.com/photo-1587836374828-4dbafa94cf0e?q=80&w=1920&auto=format&fit=crop",
     button_text: "Katalogni ko'rish",
     link: "/products",
     sort_order: 1,
@@ -35,7 +35,7 @@ const slides = [
     id: "s4",
     title: "Hublot Big Bang Series",
     subtitle: "Innovatsion keramika, titan korpus va xronograf funksiyalari. Jasur va zamonaviy obraz.",
-    image_url: "https://images.unsplash.com/photo-1587836374828-4dbafa94cf0e?q=80&w=1920&auto=format&fit=crop",
+    image_url: "https://images.unsplash.com/photo-1533139502658-0198f920d8e8?q=80&w=1920&auto=format&fit=crop",
     button_text: "Brend soatlari",
     link: "/products",
     sort_order: 4,
@@ -45,7 +45,7 @@ const slides = [
     id: "s5",
     title: "Tissot & Maxsus Chegirmalar",
     subtitle: "O'zbekiston bo'ylab 1 kunda bepul yetkazib berish. 30% gacha maxsus mavsumiy chegirmalar.",
-    image_url: "https://images.unsplash.com/photo-1509042239860-f550ce710b93?q=80&w=1920&auto=format&fit=crop",
+    image_url: "https://images.unsplash.com/photo-1619134778706-7015533a6150?q=80&w=1920&auto=format&fit=crop",
     button_text: "Aksiyalarni ko'rish",
     link: "/products?sale=1",
     sort_order: 5,
@@ -55,11 +55,11 @@ const slides = [
 
 async function main() {
   const catUpdates = [
-    { id: 'c1', image_url: 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?q=80&w=800&auto=format&fit=crop' },
-    { id: 'c2', image_url: 'https://images.unsplash.com/photo-1508057198894-247b23fe5ade?q=80&w=800&auto=format&fit=crop' },
-    { id: 'c3', image_url: 'https://images.unsplash.com/photo-1510017803434-a899398421b3?q=80&w=800&auto=format&fit=crop' },
-    { id: 'c5', image_url: 'https://images.unsplash.com/photo-1579586337278-3befd40fd17a?q=80&w=800&auto=format&fit=crop' },
-    { id: 'c7', image_url: 'https://images.unsplash.com/photo-1622434641406-a158123450f9?q=80&w=800&auto=format&fit=crop' }
+    { id: 'c1', image_url: 'https://images.unsplash.com/photo-1587836374828-4dbafa94cf0e?q=80&w=800&auto=format&fit=crop' },
+    { id: 'c2', image_url: 'https://images.unsplash.com/photo-1524592094714-0f0654e20314?q=80&w=800&auto=format&fit=crop' },
+    { id: 'c3', image_url: 'https://jcxuntvtoemnhnsxjwrh.supabase.co/storage/v1/object/public/shop-images/bot/1789815383399_0.jpg' },
+    { id: 'c5', image_url: 'https://images.unsplash.com/photo-1546868871-7041f2a55e12?q=80&w=800&auto=format&fit=crop' },
+    { id: 'c7', image_url: 'https://images.unsplash.com/photo-1508057198894-247b23fe5ade?q=80&w=800&auto=format&fit=crop' }
   ];
 
   for (const c of catUpdates) {
@@ -69,6 +69,7 @@ async function main() {
 
   const { data, error } = await supabase.from("sliders").upsert(slides).select();
   console.log("Upserted:", data?.length, "slides, error:", error);
+  process.exit(0);
 }
 
 main();

@@ -11,7 +11,7 @@ const DEFAULT_SLIDES: Slider[] = [
     id: "s1",
     title: "Rolex Oyster Perpetual",
     subtitle: "Dunyoning eng mashhur va nufuzli Shveysariya soatlari. Original sifat va 12 oy rasmiy kafolat.",
-    image_url: "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?q=80&w=1920&auto=format&fit=crop",
+    image_url: "https://images.unsplash.com/photo-1587836374828-4dbafa94cf0e?q=80&w=1920&auto=format&fit=crop",
     button_text: "Katalogni ko'rish",
     link: "/products",
     sort_order: 1,
@@ -20,7 +20,7 @@ const DEFAULT_SLIDES: Slider[] = [
   },
   {
     id: "s2",
-    title: "Audemars Piguet Royal Oak",
+    title: "Audemars Piguet & IWC",
     subtitle: "O'zgacha geometrik luks dizayn va avtomatik mexanizm. Har bir erkak orzusidagi hashamat.",
     image_url: "https://images.unsplash.com/photo-1524805444758-089113d48a6d?q=80&w=1920&auto=format&fit=crop",
     button_text: "Erkaklar soatlari",
@@ -42,9 +42,9 @@ const DEFAULT_SLIDES: Slider[] = [
   },
   {
     id: "s4",
-    title: "Hublot Big Bang Series",
-    subtitle: "Innovatsion keramika, titan korpus va xronograf funksiyalari. Jasur va zamonaviy obraz.",
-    image_url: "https://images.unsplash.com/photo-1587836374828-4dbafa94cf0e?q=80&w=1920&auto=format&fit=crop",
+    title: "Hublot & Ofera Series",
+    subtitle: "Innovatsion korpus, titan va xronograf funksiyalari. Jasur va zamonaviy obraz.",
+    image_url: "https://images.unsplash.com/photo-1533139502658-0198f920d8e8?q=80&w=1920&auto=format&fit=crop",
     button_text: "Brend soatlari",
     link: "/products",
     sort_order: 4,
@@ -55,7 +55,7 @@ const DEFAULT_SLIDES: Slider[] = [
     id: "s5",
     title: "Tissot & Maxsus Chegirmalar",
     subtitle: "O'zbekiston bo'ylab 1 kunda bepul yetkazib berish. 30% gacha maxsus mavsumiy chegirmalar.",
-    image_url: "https://images.unsplash.com/photo-1509042239860-f550ce710b93?q=80&w=1920&auto=format&fit=crop",
+    image_url: "https://images.unsplash.com/photo-1619134778706-7015533a6150?q=80&w=1920&auto=format&fit=crop",
     button_text: "Aksiyalarni ko'rish",
     link: "/products?sale=1",
     sort_order: 5,
@@ -70,8 +70,17 @@ export function HeroSlider({ sliders }: { sliders: Slider[] }) {
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
 
   const active = useMemo(() => {
-    const list = sliders?.filter((s) => s.is_active).sort((a, b) => a.sort_order - b.sort_order) || [];
-    return list.length > 0 ? list : DEFAULT_SLIDES;
+    const list = sliders && sliders.length > 0 ? sliders : DEFAULT_SLIDES;
+    return list
+      .filter((s) => s.is_active)
+      .sort((a, b) => a.sort_order - b.sort_order)
+      .map((s, idx) => {
+        let img = s.image_url;
+        if (!img || img.includes("1522335789203") || img.includes("1509042239860")) {
+          img = DEFAULT_SLIDES[idx % DEFAULT_SLIDES.length].image_url;
+        }
+        return { ...s, image_url: img };
+      });
   }, [sliders]);
 
   useEffect(() => {

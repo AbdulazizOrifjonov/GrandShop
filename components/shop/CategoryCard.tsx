@@ -4,11 +4,11 @@ import { ArrowRight } from "lucide-react";
 import { Category } from "@/types/database";
 
 const FALLBACK_CATEGORY_IMAGES: Record<string, string> = {
-  erkaklar: "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?q=80&w=800&auto=format&fit=crop",
-  ayollar: "https://images.unsplash.com/photo-1508057198894-247b23fe5ade?q=80&w=800&auto=format&fit=crop",
-  bolalar: "https://images.unsplash.com/photo-1510017803434-a899398421b3?q=80&w=800&auto=format&fit=crop",
-  "smart-soatlar": "https://images.unsplash.com/photo-1579586337278-3befd40fd17a?q=80&w=800&auto=format&fit=crop",
-  aksessuarlar: "https://images.unsplash.com/photo-1622434641406-a158123450f9?q=80&w=800&auto=format&fit=crop",
+  erkaklar: "https://images.unsplash.com/photo-1587836374828-4dbafa94cf0e?q=80&w=800&auto=format&fit=crop",
+  ayollar: "https://images.unsplash.com/photo-1524592094714-0f0654e20314?q=80&w=800&auto=format&fit=crop",
+  bolalar: "https://jcxuntvtoemnhnsxjwrh.supabase.co/storage/v1/object/public/shop-images/bot/1789815383399_0.jpg",
+  "smart-soatlar": "https://images.unsplash.com/photo-1546868871-7041f2a55e12?q=80&w=800&auto=format&fit=crop",
+  aksessuarlar: "https://images.unsplash.com/photo-1508057198894-247b23fe5ade?q=80&w=800&auto=format&fit=crop",
 };
 
 const DEFAULT_IMAGE = "https://images.unsplash.com/photo-1524805444758-089113d48a6d?q=80&w=800&auto=format&fit=crop";
@@ -20,7 +20,10 @@ export function CategoryCard({
   category: Category;
   className?: string;
 }) {
-  const imageUrl = category.image_url || FALLBACK_CATEGORY_IMAGES[category.slug] || DEFAULT_IMAGE;
+  let imageUrl = category.image_url || FALLBACK_CATEGORY_IMAGES[category.slug] || DEFAULT_IMAGE;
+  if (imageUrl.includes("1522335789203") || imageUrl.includes("1509042239860")) {
+    imageUrl = FALLBACK_CATEGORY_IMAGES[category.slug] || DEFAULT_IMAGE;
+  }
 
   return (
     <Link
