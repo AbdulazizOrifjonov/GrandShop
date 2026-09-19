@@ -167,8 +167,90 @@ export default function AdminPromocodesPage() {
           </div>
         </div>
 
-        {/* Promocodes Table */}
-        <div className="overflow-x-auto rounded-xl border border-navy-100 bg-white shadow-2xs">
+        {/* MOBIL KO'RINISH: Telefonlar uchun Promokodlar kartalari */}
+        <div className="md:hidden space-y-3">
+          {filtered.map((p) => {
+            const isExpired = p.expires_at && new Date(p.expires_at).getTime() < Date.now();
+            return (
+              <div key={p.id} className="rounded-xl border border-navy-100 bg-white p-3.5 shadow-2xs space-y-3">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono text-base font-extrabold tracking-wider text-navy-950 bg-navy-50 px-2.5 py-1 rounded-lg border border-navy-200/80">
+                      {p.code}
+                    </span>
+                    <button
+                      onClick={() => copyCode(p.code, p.id)}
+                      title="Kodni nusxalash"
+                      className="p-1.5 rounded-lg border border-navy-100 text-navy-900/60 hover:text-navy-900 hover:bg-navy-50 transition"
+                    >
+                      {copiedId === p.id ? <Check size={15} className="text-success" /> : <Copy size={15} />}
+                    </button>
+                  </div>
+
+                  <span className="inline-flex items-center font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-lg text-xs">
+                    {p.discount_type === "percent" ? `-${p.discount_value}%` : `-${formatSom(p.discount_value)}`}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 text-xs py-2 border-y border-navy-50">
+                  <div>
+                    <span className="text-navy-900/40 block text-[11px]">Min. buyurtma:</span>
+                    <span className="font-medium text-navy-900">
+                      {p.min_order_amount > 0 ? formatSom(p.min_order_amount) : "Cheklovsiz"}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-navy-900/40 block text-[11px]">Ishlatildi:</span>
+                    <span className="font-medium text-navy-900">
+                      {p.used_count || 0} / {p.usage_limit ? `${p.usage_limit} ta` : "Cheksiz"}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between pt-1">
+                  <button
+                    type="button"
+                    onClick={() => togglePromocode(p.id)}
+                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold transition ${
+                      p.is_active
+                        ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                        : "bg-slate-100 text-slate-500 border border-slate-200"
+                    }`}
+                  >
+                    <span className={`h-1.5 w-1.5 rounded-full ${p.is_active ? "bg-emerald-500" : "bg-slate-400"}`} />
+                    <span>{p.is_active ? "Faol" : "Nofaol"}</span>
+                  </button>
+
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      onClick={() => openEdit(p)}
+                      title="Tahrirlash"
+                      className="flex items-center gap-1 rounded-lg border border-navy-200/80 bg-navy-50 px-2.5 py-1.5 text-xs font-semibold text-navy-900 hover:bg-navy-100 transition"
+                    >
+                      <Pencil size={13} className="text-navy-700" />
+                      <span>Tahrirlash</span>
+                    </button>
+                    <button
+                      onClick={() => setDeletingPromo(p)}
+                      title="O'chirish"
+                      className="flex h-8 w-8 items-center justify-center rounded-lg border border-red-200 bg-red-50 text-danger hover:bg-red-100 transition"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+          {filtered.length === 0 && (
+            <div className="rounded-xl border border-navy-100 bg-white p-8 text-center text-sm text-navy-900/40">
+              Promokodlar topilmadi.
+            </div>
+          )}
+        </div>
+
+        {/* DESKTOP JADVAL: Katta ekranlar uchun */}
+        <div className="hidden md:block overflow-x-auto rounded-xl border border-navy-100 bg-white shadow-2xs">
           <table className="w-full text-left text-sm">
             <thead className="border-b border-navy-100 bg-navy-50/70 text-xs font-semibold text-navy-900/60 uppercase tracking-wider">
               <tr>

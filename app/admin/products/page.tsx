@@ -165,8 +165,98 @@ export default function AdminProductsPage() {
           </select>
         </div>
 
-        <div className="admin-table-responsive overflow-x-auto rounded-xl border border-navy-100">
-          <table className="w-full text-left text-sm">
+        {/* MOBIL KO'RINISH: Telefonlarda har bir mahsulot uchun alohida karta (Tahrirlash va O'chirish doim ko'rinib turadi) */}
+        <div className="md:hidden space-y-3">
+          {pageItems.map((p) => {
+            const cat = categories.find((c) => c.id === p.category_id);
+            return (
+              <div key={p.id} className="rounded-xl border border-navy-100 bg-white p-3.5 shadow-2xs space-y-3">
+                <div className="flex items-start gap-3">
+                  <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-navy-50 border border-navy-100">
+                    {p.image ? (
+                      <Image src={p.image} alt={p.name} fill className="object-cover" />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center text-navy-300">
+                        <Package size={20} />
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5 flex-wrap mb-1">
+                      {cat && (
+                        <span className="rounded bg-info/10 px-2 py-0.5 text-[11px] font-semibold text-info">
+                          {cat.name}
+                        </span>
+                      )}
+                      {p.brand && (
+                        <span className="text-xs text-navy-900/50 font-medium">{p.brand}</span>
+                      )}
+                    </div>
+                    <p className="font-semibold text-navy-950 text-sm leading-snug line-clamp-2">
+                      {p.name}
+                    </p>
+                    <div className="mt-1 flex items-baseline gap-2">
+                      <span className="font-bold text-navy-900 text-sm">{formatSom(p.price)}</span>
+                      <span className="text-[10px] text-navy-900/40 font-mono">SKU: {p.sku}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between border-t border-navy-50 pt-2.5">
+                  <button
+                    type="button"
+                    onClick={() => toggleActive(p)}
+                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold transition ${
+                      p.is_active
+                        ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                        : "bg-slate-100 text-slate-500 border border-slate-200"
+                    }`}
+                  >
+                    <span className={`h-1.5 w-1.5 rounded-full ${p.is_active ? "bg-emerald-500" : "bg-slate-400"}`} />
+                    <span>{p.is_active ? "Faol" : "Nofaol"}</span>
+                  </button>
+
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      onClick={() => openEdit(p)}
+                      title="Tahrirlash"
+                      className="flex items-center gap-1 rounded-lg border border-navy-200/80 bg-navy-50 px-2.5 py-1.5 text-xs font-semibold text-navy-900 hover:bg-navy-100 active:scale-95 transition"
+                    >
+                      <Pencil size={13} className="text-navy-700" />
+                      <span>Tahrirlash</span>
+                    </button>
+                    <a
+                      href={`/products/${p.slug}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      title="Saytda ochish"
+                      className="flex h-8 w-8 items-center justify-center rounded-lg border border-navy-200/80 text-navy-700 hover:bg-navy-50 hover:text-gold-600 transition"
+                    >
+                      <Eye size={14} />
+                    </a>
+                    <button
+                      onClick={() => confirmDelete(p)}
+                      title="O'chirish"
+                      className="flex h-8 w-8 items-center justify-center rounded-lg border border-red-200 bg-red-50 text-danger hover:bg-red-100 active:scale-95 transition"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+          {pageItems.length === 0 && (
+            <div className="rounded-xl border border-navy-100 bg-white p-8 text-center text-sm text-navy-900/40">
+              Mahsulot topilmadi.
+            </div>
+          )}
+        </div>
+
+        {/* DESKTOP KO'RINISH: Katta ekranlar uchun to'liq jadval */}
+        <div className="hidden md:block overflow-x-auto rounded-xl border border-navy-100 bg-white shadow-2xs">
+          <table className="w-full min-w-[760px] text-left text-sm">
             <thead className="bg-navy-50 text-xs text-navy-900/50">
               <tr>
                 <th className="p-3">Rasm</th>
@@ -175,14 +265,14 @@ export default function AdminProductsPage() {
                 <th className="p-3">Brend</th>
                 <th className="p-3">Narxi</th>
                 <th className="p-3">Holat</th>
-                <th className="p-3">Amallar</th>
+                <th className="p-3 text-right">Amallar</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-navy-50">
               {pageItems.map((p) => {
                 const cat = categories.find((c) => c.id === p.category_id);
                 return (
-                  <tr key={p.id} className="border-t border-navy-50">
+                  <tr key={p.id} className="hover:bg-navy-50/40 transition-colors">
                     <td className="p-3">
                       <div className="relative h-11 w-11 overflow-hidden rounded-lg bg-navy-50">
                         {p.image && <Image src={p.image} alt={p.name} fill className="object-cover" />}
@@ -212,8 +302,8 @@ export default function AdminProductsPage() {
                         <span>{p.is_active ? "Faol" : "Nofaol"}</span>
                       </button>
                     </td>
-                    <td className="p-3">
-                      <div className="flex items-center gap-1.5">
+                    <td className="p-3 text-right">
+                      <div className="inline-flex items-center gap-1.5">
                         <button
                           onClick={() => openEdit(p)}
                           title="Tahrirlash"
