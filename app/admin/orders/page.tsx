@@ -1,12 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { Eye, X } from "lucide-react";
+import Link from "next/link";
+import { Eye } from "lucide-react";
 import { AdminHeader } from "@/components/admin/AdminHeader";
-import { Modal } from "@/components/admin/Modal";
 import { OrderStatusBadge } from "@/components/shop/OrderStatusBadge";
 import { useStore } from "@/lib/store";
-import { Order, OrderStatus } from "@/types/database";
+import { OrderStatus } from "@/types/database";
 import { formatSom } from "@/lib/utils";
 
 const STATUSES: OrderStatus[] = ["new", "processing", "shipped", "delivered", "cancelled"];
@@ -21,7 +21,6 @@ const STATUS_LABEL: Record<OrderStatus, string> = {
 export default function AdminOrdersPage() {
   const { orders, updateOrderStatus } = useStore();
   const [statusFilter, setStatusFilter] = useState("all");
-  const [selected, setSelected] = useState<Order | null>(null);
 
   const filtered = statusFilter === "all" ? orders : orders.filter((o) => o.status === statusFilter);
 
@@ -75,13 +74,13 @@ export default function AdminOrdersPage() {
                     {STATUSES.map((s) => <option key={s} value={s}>{STATUS_LABEL[s]}</option>)}
                   </select>
 
-                  <button
-                    onClick={() => setSelected(o)}
-                    className="flex h-8 items-center gap-1 rounded-lg border border-navy-200/80 bg-navy-50 px-2.5 text-xs font-semibold text-navy-800 hover:bg-navy-100 active:scale-95 transition"
+                  <Link
+                    href={`/admin/orders/${o.id}`}
+                    className="flex h-8 items-center gap-1.5 rounded-lg border border-navy-200/80 bg-navy-50 px-2.5 text-xs font-semibold text-navy-800 hover:bg-navy-100 active:scale-95 transition"
                   >
                     <Eye size={13} />
                     <span>Ko'rish</span>
-                  </button>
+                  </Link>
                 </div>
               </div>
             </div>
@@ -111,7 +110,11 @@ export default function AdminOrdersPage() {
             <tbody className="divide-y divide-navy-50">
               {filtered.map((o) => (
                 <tr key={o.id} className="hover:bg-navy-50/40 transition-colors">
-                  <td className="p-3 font-medium text-navy-900">#{o.order_number}</td>
+                  <td className="p-3 font-medium text-navy-900">
+                    <Link href={`/admin/orders/${o.id}`} className="hover:underline hover:text-gold-600">
+                      #{o.order_number}
+                    </Link>
+                  </td>
                   <td className="p-3">{o.full_name}</td>
                   <td className="p-3">{o.phone}</td>
                   <td className="p-3 max-w-[180px] truncate">{o.address}</td>
@@ -127,9 +130,13 @@ export default function AdminOrdersPage() {
                     </select>
                   </td>
                   <td className="p-3 text-right">
-                    <button onClick={() => setSelected(o)} className="rounded-lg border border-navy-100 p-1.5 hover:bg-navy-50" title="Batafsil">
+                    <Link
+                      href={`/admin/orders/${o.id}`}
+                      className="inline-flex rounded-lg border border-navy-100 p-1.5 hover:bg-navy-50 text-navy-700 hover:text-navy-950 transition"
+                      title="Batafsil ko'rish"
+                    >
                       <Eye size={14} />
-                    </button>
+                    </Link>
                   </td>
                 </tr>
               ))}
@@ -140,35 +147,6 @@ export default function AdminOrdersPage() {
           </table>
         </div>
       </div>
-
-      <Modal open={!!selected} onClose={() => setSelected(null)} title={`Buyurtma #${selected?.order_number ?? ""}`}>
-        {selected && (
-          <div className="space-y-4 text-sm">
-            <div className="flex items-center justify-between">
-              <OrderStatusBadge status={selected.status} />
-              <span className="text-navy-900/50">{new Date(selected.created_at).toLocaleString("uz-UZ")}</span>
-            </div>
-            <div className="grid grid-cols-2 gap-3 rounded-lg bg-navy-50 p-4">
-              <p><span className="text-navy-900/50">Mijoz:</span> {selected.full_name}</p>
-              <p><span className="text-navy-900/50">Telefon:</span> {selected.phone}</p>
-              <p className="col-span-2"><span className="text-navy-900/50">Manzil:</span> {selected.address}</p>
-              {selected.note && <p className="col-span-2"><span className="text-navy-900/50">Izoh:</span> {selected.note}</p>}
-            </div>
-            <div className="space-y-2">
-              {(selected.items ?? []).map((it, i) => (
-                <div key={i} className="flex justify-between border-b border-navy-50 pb-2">
-                  <span>{it.product_name || (it as any).name || "Mahsulot"} x{it.quantity}</span>
-                  <span className="font-medium">{formatSom(it.price * it.quantity)}</span>
-                </div>
-              ))}
-            </div>
-            <div className="flex justify-between text-base font-bold">
-              <span>Jami</span>
-              <span>{formatSom(selected.total)}</span>
-            </div>
-          </div>
-        )}
-      </Modal>
     </div>
   );
 }
