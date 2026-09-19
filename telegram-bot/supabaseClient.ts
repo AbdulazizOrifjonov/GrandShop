@@ -90,7 +90,9 @@ export async function insertProduct(
   const { error } = await supabase.from('products').insert(payload);
   if (error) {
     console.error("Supabase DB Insert error:", error);
+    throw new Error(error.message || "Baza xatosi");
   }
+  return id;
 }
 
 export async function createNewCategory(name: string): Promise<string> {

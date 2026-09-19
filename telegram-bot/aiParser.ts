@@ -1,4 +1,4 @@
-﻿import { generateObject } from "ai";
+import { generateObject } from "ai";
 import { openai } from "@ai-sdk/openai";
 import { google } from "@ai-sdk/google";
 import { z } from "zod";
@@ -65,14 +65,48 @@ ${text}
     name = name.replace(/^[\p{Emoji_Presentation}\p{Extended_Pictographic}\u200d\uFE0F\W]+/gu, '').replace(/"/g, '').trim();
     if (name.length > 50) name = name.substring(0, 50) + "..."; // safety truncate
     
-    // Extract price
+    // Extract price with comprehensive multi-pattern support
     let price: number | null = null;
-    // Match any digits after "Цена" or "Narx" ignoring any characters/emojis in between, up to the first group of numbers
-    const priceMatch = text.match(/(?:Цена|Narx)[^\d]*([\d\.\s\,]+)/i) || text.match(/([\d\.\s\,]+)\s*(сум|uzs|so\'?m|\$)/i);
-    if (priceMatch) {
-      let numStr = priceMatch[1].replace(/[^\d]/g, '');
-      if (numStr) {
+
+    // 1. Explicit keywords: Narx, Narxi, Цена, Стоимость, Price, Cost, 💰, 💵, 💸
+    const labelMatch = text.match(/(?:narx[i]?|цена|стоимость|price|cost|[💰💵💸])[^\d\n]*?(\$?\s*[\d\.\s\,]+)/i);
+    if (labelMatch && labelMatch[1]) {
+      const numStr = labelMatch[1].replace(/[^\d]/g, '');
+      if (numStr && parseInt(numStr, 10) > 0) {
         price = parseInt(numStr, 10);
+      }
+    }
+
+    // 2. Dollar signs: $100, $ 100, 100$, 100 $
+    if (!price) {
+      const dollarMatch = text.match(/\$\s*([\d\.\s\,]+)/) || text.match(/([\d\.\s\,]+)\s*\$/);
+      if (dollarMatch && dollarMatch[1]) {
+        const numStr = dollarMatch[1].replace(/[^\d]/g, '');
+        if (numStr && parseInt(numStr, 10) > 0) {
+          price = parseInt(numStr, 10);
+        }
+      }
+    }
+
+    // 3. Currency suffixes: so'm, sum, uzs, usd, dollar, доллар, у.е.
+    if (!price) {
+      const currMatch = text.match(/([\d\.\s\,]+)\s*(?:сум|uzs|so\'?m|usd|dollar|доллар|у\.?е\.?)/i);
+      if (currMatch && currMatch[1]) {
+        const numStr = currMatch[1].replace(/[^\d]/g, '');
+        if (numStr && parseInt(numStr, 10) > 0) {
+          price = parseInt(numStr, 10);
+        }
+      }
+    }
+
+    // 4. Standalone formatted large number: e.g. 1 400 000, 250 000, 1.200.000
+    if (!price) {
+      const numMatch = text.match(/\b(\d{1,3}(?:[\s\.]\d{3})+)\b/);
+      if (numMatch && numMatch[1]) {
+        const numStr = numMatch[1].replace(/[^\d]/g, '');
+        if (numStr && parseInt(numStr, 10) > 0) {
+          price = parseInt(numStr, 10);
+        }
       }
     }
     

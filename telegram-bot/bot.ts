@@ -73,23 +73,28 @@ async function processMediaGroup(ctx: Context, mediaGroupId: string) {
     return;
   }
 
-  const statusMsg = await ctx.reply("🔄 Analiz qilinmoqda...");
+    let statusMsg;
+  try {
+    statusMsg = await ctx.reply("🔄 Analiz qilinmoqda...");
+  } catch (e) {
+    console.log("Failed to send statusMsg, probably rate limited. Proceeding anyway...");
+  }
 
   try {
     const parsed = await parseProductText(group.text);
     if (!parsed || !parsed.name) {
-      await ctx.telegram.editMessageText(ctx.chat?.id, statusMsg.message_id, undefined, "❌ AI matnni tushunmadi.");
+      if (statusMsg) await ctx.telegram.editMessageText(ctx.chat?.id, statusMsg.message_id, undefined, "❌ AI matnni tushunmadi.");
       return;
     }
 
     // Check duplicate in Supabase
     const { data: dup } = await supabase.from('products').select('id').eq('name', parsed.name).limit(1).single();
     if (dup) {
-      await ctx.telegram.editMessageText(ctx.chat?.id, statusMsg.message_id, undefined, `⚠️ **Dublikat:** ${parsed.name} avval qo'shilgan, o'tkazib yuborildi.`, { parse_mode: "Markdown" });
+      if (statusMsg) await ctx.telegram.editMessageText(ctx.chat?.id, statusMsg.message_id, undefined, `⚠️ **Dublikat:** ${parsed.name} avval qo'shilgan, o'tkazib yuborildi.`, { parse_mode: "Markdown" });
       return;
     }
 
-    await ctx.telegram.editMessageText(ctx.chat?.id, statusMsg.message_id, undefined, `⏳ Rasmlar yuklanmoqda... (${parsed.name})`, { parse_mode: "Markdown" });
+    if (statusMsg) await ctx.telegram.editMessageText(ctx.chat?.id, statusMsg.message_id, undefined, `⏳ Rasmlar yuklanmoqda... (${parsed.name})`, { parse_mode: "Markdown" });
 
     const uploadedUrls: string[] = [];
     for (let i = 0; i < group.photoIds.length; i++) {
@@ -99,14 +104,31 @@ async function processMediaGroup(ctx: Context, mediaGroupId: string) {
       if (publicUrl) uploadedUrls.push(publicUrl);
     }
 
-    // Auto assign category (Erkaklar = c1, Ayollar = c2)
+    // Auto assign category (c1: Erkaklar, c2: Ayollar, c3: Bolalar, c5: Smart, c7: Aksessuarlar)
     let catId = "c1"; 
-    const lowerText = group.text.toLowerCase();
-    if (lowerText.includes("ayollar") || lowerText.includes("zhenskiy")) catId = "c2";
+    const lowerText = (parsed.name + " " + group.text).toLowerCase();
+    
+    if (lowerText.includes("smart") || lowerText.includes("смарт") || lowerText.includes("apple watch") || lowerText.includes("elektron")) {
+      catId = "c5";
+    } else if (lowerText.includes("bolalar") || lowerText.includes("detckiy") || lowerText.includes("detskiy") || lowerText.includes("детск")) {
+      catId = "c3";
+    } else if (lowerText.includes("ayollar") || lowerText.includes("zhenskiy") || lowerText.includes("женск") || lowerText.includes("lady") || lowerText.includes("damas")) {
+      catId = "c2";
+    } else if (lowerText.includes("kamar") || lowerText.includes("remeshok") || lowerText.includes("aksessuar") || lowerText.includes("braslet")) {
+      catId = "c7";
+    }
 
-    // Extract brand from name
-    let finalBrand = null;
-    const knownBrands = ["Rolex", "Casio", "Tissot", "Seiko", "Orient", "Hublot", "Patek Philippe", "Rado", "Longines", "Omega", "Cartier"];
+    // Extract brand from name and text
+    let finalBrand: string | null = null;
+    const knownBrands = [
+      "Rolex", "Casio", "Tissot", "Seiko", "Orient", "Hublot", "Patek Philippe", 
+      "Rado", "Longines", "Omega", "Cartier", "Audemars Piguet", "Breitling", 
+      "Tag Heuer", "Citizen", "Curren", "Naviforce", "Skmei", "Fossil", 
+      "Michael Kors", "Richard Mille", "Vacheron Constantin", "IWC", "Panerai", 
+      "Chopard", "Franck Muller", "Diesel", "Emporio Armani", "Armani", 
+      "Versace", "Gucci", "Calvin Klein", "Guess", "Bvlgari", "Bulgari",
+      "Patek", "Maurice Lacroix", "Ulysse Nardin", "Montblanc", "Zenith"
+    ];
     for (const b of knownBrands) {
       if (lowerText.includes(b.toLowerCase())) {
         finalBrand = b;
@@ -114,10 +136,18 @@ async function processMediaGroup(ctx: Context, mediaGroupId: string) {
       }
     }
 
+    // Ensure price is valid and not 0
+    let finalPrice = parsed.price;
+    if (!finalPrice || finalPrice <= 0) {
+      const anyNum = group.text.match(/\b(\d{2,8})\b/);
+      if (anyNum) finalPrice = parseInt(anyNum[1], 10);
+      else finalPrice = 100; // safe non-zero fallback
+    }
+
     const productId = await insertProduct(
       parsed.name,
       parsed.description,
-      parsed.price || 0,
+      finalPrice,
       parsed.characteristics,
       uploadedUrls,
       group.messageId.toString(),
@@ -125,10 +155,12 @@ async function processMediaGroup(ctx: Context, mediaGroupId: string) {
       finalBrand
     );
 
-    await ctx.telegram.editMessageText(ctx.chat?.id, statusMsg.message_id, undefined, `✅ **Qo'shildi:** ${parsed.name}`, { parse_mode: "Markdown" });
+    const formattedPrice = finalPrice < 100000 ? "$" + finalPrice.toLocaleString("ru-RU") : finalPrice.toLocaleString("ru-RU") + " so'm";
+    if (statusMsg) await ctx.telegram.editMessageText(ctx.chat?.id, statusMsg.message_id, undefined, `✅ **Qo'shildi:** ${parsed.name}\n💰 **Narx:** ${formattedPrice}\n🏷 **Brend:** ${finalBrand || "Mavjud emas"}`, { parse_mode: "Markdown" });
 
   } catch (err: any) {
     console.error(err);
-    await ctx.telegram.editMessageText(ctx.chat?.id, statusMsg.message_id, undefined, "❌ Xatolik yuz berdi.");
+    if (statusMsg) await ctx.telegram.editMessageText(ctx.chat?.id, statusMsg.message_id, undefined, "❌ Xatolik yuz berdi.");
   }
 }
+
