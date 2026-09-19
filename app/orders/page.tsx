@@ -23,7 +23,12 @@ export default function OrdersPage() {
 
   if (!user) return null;
 
-  const myOrders = orders.filter((o) => o.user_id === user.id);
+  const cleanUserPhone = user.phone ? user.phone.replace(/\D/g, "") : "";
+  const myOrders = orders.filter(
+    (o) =>
+      (o.user_id && o.user_id === user.id) ||
+      (cleanUserPhone && o.phone && o.phone.replace(/\D/g, "") === cleanUserPhone)
+  );
 
   return (
     <div className="min-h-screen bg-white flex flex-col">

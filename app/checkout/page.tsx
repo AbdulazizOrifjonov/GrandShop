@@ -15,7 +15,7 @@ import { formatSom } from "@/lib/utils";
 export default function CheckoutPage() {
   const { items, clear } = useCart();
   const { products, createOrder } = useStore();
-  const { user } = useAuth();
+  const { user, ready: authReady } = useAuth();
   const router = useRouter();
 
   const [fullName, setFullName] = useState(user?.fullName ?? "");
@@ -25,6 +25,20 @@ export default function CheckoutPage() {
   const [placedOrder, setPlacedOrder] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [appliedPromo, setAppliedPromo] = useState<{ code: string; discount: number; min_order_amount: number } | null>(null);
+
+  useEffect(() => {
+    if (authReady && !user) {
+      router.push("/login?redirect=checkout");
+    }
+  }, [authReady, user, router]);
+
+  useEffect(() => {
+    if (user) {
+      if (user.fullName && !fullName) setFullName(user.fullName);
+      if (user.phone && !phone) setPhone(user.phone);
+      if (user.address && !address) setAddress(user.address);
+    }
+  }, [user]);
 
   useEffect(() => {
     try {
@@ -64,11 +78,20 @@ export default function CheckoutPage() {
       slug: d.product!.slug,
     }));
 
+    const orderNum = `ORD-${Math.floor(100000 + Math.random() * 900000)}`;
+    const orderId =
+      typeof crypto !== "undefined" && crypto.randomUUID
+        ? crypto.randomUUID()
+        : `ord_${Date.now()}`;
+
     try {
       await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          orderId,
+          orderNumber: orderNum,
+          userId: user?.id ?? null,
           fullName,
           phone,
           address,
@@ -86,6 +109,8 @@ export default function CheckoutPage() {
     }
 
     const order = createOrder({
+      id: orderId,
+      order_number: orderNum,
       user_id: user?.id ?? null,
       full_name: fullName,
       phone,
@@ -96,8 +121,8 @@ export default function CheckoutPage() {
       discount: discountAmount,
       total,
       items: detailed.map((d) => ({
-        id: "",
-        order_id: "",
+        id: d.product!.id,
+        order_id: orderId,
         product_id: d.product!.id,
         product_name: d.product!.name,
         product_image: d.product!.image,

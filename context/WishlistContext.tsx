@@ -7,9 +7,10 @@ import {
   useEffect,
   useState,
 } from "react";
-
+import { useRouter } from "next/navigation";
 import { useToast } from "@/context/ToastContext";
 import { useStore } from "@/lib/store";
+import { useAuth } from "@/lib/auth";
 
 interface WishlistContextValue {
   ids: string[];
@@ -27,33 +28,48 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
   const [hydrated, setHydrated] = useState(false);
   const { showToast } = useToast();
   const { products, ready } = useStore();
+  const { user } = useAuth();
+  const router = useRouter();
 
   useEffect(() => {
+    if (!user) {
+      setIds([]);
+      setHydrated(true);
+      return;
+    }
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
+      const raw =
+        localStorage.getItem(`${STORAGE_KEY}_${user.id}`) ||
+        localStorage.getItem(STORAGE_KEY);
       if (raw) setIds(JSON.parse(raw));
+      else setIds([]);
     } catch {
       /* ignore */
     }
     setHydrated(true);
-  }, []);
+  }, [user]);
 
   // Bazadan o'chirilgan yoki mavjud bo'lmagan mahsulotlarni avtomatik tozalash
   useEffect(() => {
-    if (!hydrated || !ready || products.length === 0) return;
+    if (!hydrated || !ready || products.length === 0 || !user) return;
     setIds((prev) => {
       const valid = prev.filter((id) => products.some((p) => p.id === id));
       if (valid.length !== prev.length) return valid;
       return prev;
     });
-  }, [hydrated, ready, products]);
+  }, [hydrated, ready, products, user]);
 
   useEffect(() => {
-    if (!hydrated) return;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(ids));
-  }, [ids, hydrated]);
+    if (!hydrated || !user) return;
+    localStorage.setItem(`${STORAGE_KEY}_${user.id}`, JSON.stringify(ids));
+  }, [ids, hydrated, user]);
 
   const toggle = useCallback((productId: string) => {
+    if (!user) {
+      showToast("Sevimlilarga qo'shish uchun avval ro'yxatdan o'ting yoki tizimga kiring!", "warning");
+      router.push("/login?redirect=wishlist");
+      return;
+    }
     setIds((prev) => {
       const isIncluded = prev.includes(productId);
       if (isIncluded) {
@@ -64,15 +80,22 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
         return [...prev, productId];
       }
     });
-  }, [showToast]);
+  }, [user, router, showToast]);
 
   const remove = useCallback((productId: string) => {
     setIds((prev) => prev.filter((id) => id !== productId));
   }, []);
 
-  const clear = useCallback(() => setIds([]), []);
+  const clear = useCallback(() => {
+    setIds([]);
+    if (user) {
+      try {
+        localStorage.removeItem(`${STORAGE_KEY}_${user.id}`);
+      } catch {}
+    }
+  }, [user]);
 
-  const isWished = useCallback((productId: string) => ids.includes(productId), [ids]);
+  const isWished = useCallback((productId: string) => (user ? ids.includes(productId) : false), [ids, user]);
 
   return (
     <WishlistContext.Provider value={{ ids, toggle, isWished, remove, clear }}>

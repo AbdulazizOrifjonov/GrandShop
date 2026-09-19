@@ -1,9 +1,9 @@
 "use client";
 
 import { createContext, useContext, useState, useCallback, ReactNode } from "react";
-import { Check, Info, X } from "lucide-react";
+import { Check, Info, X, AlertTriangle } from "lucide-react";
 
-type ToastType = "success" | "error" | "info";
+type ToastType = "success" | "error" | "info" | "warning";
 
 interface Toast {
   id: string;
@@ -45,11 +45,14 @@ export function ToastProvider({ children }: { children: ReactNode }) {
                 ? "border-success/30"
                 : t.type === "error"
                 ? "border-danger/30"
+                : t.type === "warning"
+                ? "border-amber-400/50 bg-amber-50/20"
                 : "border-info/30"
             }`}
           >
             {t.type === "success" && <Check className="text-success" size={20} />}
             {t.type === "error" && <X className="text-danger" size={20} />}
+            {t.type === "warning" && <AlertTriangle className="text-amber-500" size={20} />}
             {t.type === "info" && <Info className="text-info" size={20} />}
             <p className="text-sm font-medium text-navy-900">{t.message}</p>
             <button onClick={() => removeToast(t.id)} className="ml-4 text-navy-900/50 hover:text-navy-900">

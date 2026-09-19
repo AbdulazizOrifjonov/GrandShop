@@ -157,7 +157,7 @@ export default function AdminOrdersPage() {
             <div className="space-y-2">
               {(selected.items ?? []).map((it, i) => (
                 <div key={i} className="flex justify-between border-b border-navy-50 pb-2">
-                  <span>{it.product_name} x{it.quantity}</span>
+                  <span>{it.product_name || (it as any).name || "Mahsulot"} x{it.quantity}</span>
                   <span className="font-medium">{formatSom(it.price * it.quantity)}</span>
                 </div>
               ))}

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { supabase } from "@/lib/supabase";
 
 function escapeHtml(str: string | number | undefined | null) {
   if (str === null || str === undefined) return "";
@@ -18,20 +19,77 @@ function formatPrice(p: number) {
 export async function POST(req: Request) {
   try {
     const data = await req.json();
-    const token = process.env.TELEGRAM_BOT_TOKEN;
+    const token =
+      process.env.TELEGRAM_BOT_TOKEN ||
+      "8304513002:AAHuB-J12OGOK4iMiefk-P-EKDh2S-tkKk4";
     const channelId = process.env.TELEGRAM_CHANNEL_ID || "-1004325588064";
-    const admin1 = process.env.TELEGRAM_ADMIN_ID;
+    const admin1 = process.env.TELEGRAM_ADMIN_ID || "1594150529";
     const admin2 = "615329280";
+
+    const orderId =
+      data.orderId ||
+      (typeof crypto !== "undefined" && crypto.randomUUID
+        ? crypto.randomUUID()
+        : `o_${Date.now()}`);
+    const orderNumber =
+      data.orderNumber || `ORD-${Math.floor(100000 + Math.random() * 900000)}`;
+
+    const items = data.items || [];
+
+    // 1. Supabase-ga server-side buyurtmani saqlash (zaxira va kafolat)
+    try {
+      const itemsToSave = items.map((it: any) => ({
+        id: it.id || it.product_id || "",
+        product_id: it.id || it.product_id || "",
+        name: it.name || it.product_name || "Mahsulot",
+        product_name: it.name || it.product_name || "Mahsulot",
+        price: Number(it.price || 0),
+        quantity: Number(it.quantity || 1),
+        image: it.image || it.product_image || null,
+        product_image: it.image || it.product_image || null,
+        user_id: data.userId || null,
+        note: data.note || null,
+      }));
+
+      const { error: dbError } = await supabase.from("orders").upsert({
+        id: orderId,
+        order_number: orderNumber,
+        customer_name: data.fullName || "Mijoz",
+        phone: data.phone || "",
+        address: data.address || "",
+        total_amount: Number(data.total || 0),
+        status: "new",
+        items: itemsToSave,
+        created_at: new Date().toISOString(),
+      });
+
+      if (dbError) {
+        console.error("Supabase upsert error in checkout route:", dbError);
+      }
+    } catch (dbErr) {
+      console.error("Supabase database exception in checkout route:", dbErr);
+    }
 
     if (!token) {
       console.warn("TELEGRAM_BOT_TOKEN not configured.");
       return NextResponse.json({ success: false, message: "Token not found" });
     }
 
-    const origin =
+    let rawOrigin =
       req.headers.get("origin") ||
       req.headers.get("referer") ||
       "https://grand-watch-shop.vercel.app";
+
+    try {
+      const parsed = new URL(rawOrigin);
+      if (parsed.hostname === "localhost" || parsed.hostname === "127.0.0.1") {
+        rawOrigin = "https://grand-watch-shop.vercel.app";
+      } else {
+        rawOrigin = parsed.origin;
+      }
+    } catch {
+      rawOrigin = "https://grand-watch-shop.vercel.app";
+    }
 
     function getAbsoluteImageUrl(img: string | null | undefined): string | null {
       if (!img) return null;
@@ -39,20 +97,19 @@ export async function POST(req: Request) {
       if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
         return trimmed;
       }
-      const cleanOrigin = origin.replace(/\/$/, "");
+      const cleanOrigin = rawOrigin.replace(/\/$/, "");
       const cleanPath = trimmed.startsWith("/") ? trimmed : `/${trimmed}`;
       return `${cleanOrigin}${cleanPath}`;
     }
 
     // Har bir mahsulot qatori: nomi, soni, narxi, summasi
-    const items = data.items || [];
     const orderLines = items
       .map((item: any, idx: number) => {
         const qty = Number(item.quantity) || 1;
         const price = Number(item.price) || 0;
         const itemTotal = price * qty;
         return (
-          `<b>${idx + 1}. ${escapeHtml(item.name)}</b>\n` +
+          `<b>${idx + 1}. ${escapeHtml(item.name || item.product_name)}</b>\n` +
           `   ▫️ Soni: <b>${qty} dona</b>\n` +
           `   ▫️ Donasi: <b>${formatPrice(price)} so'm</b>\n` +
           `   ▫️ Summasi: <b>${formatPrice(itemTotal)} so'm</b>`
@@ -61,7 +118,7 @@ export async function POST(req: Request) {
       .join("\n\n");
 
     const text =
-      `🛍 <b>YANGI BUYURTMA!</b>\n\n` +
+      `🛍 <b>YANGI BUYURTMA! #${escapeHtml(orderNumber)}</b>\n\n` +
       `👤 <b>Mijoz:</b> ${escapeHtml(data.fullName)}\n` +
       `📞 <b>Telefon:</b> ${escapeHtml(data.phone)}\n` +
       `📍 <b>Manzil:</b> ${escapeHtml(data.address)}\n` +
@@ -81,7 +138,7 @@ export async function POST(req: Request) {
 
     // Haqiqiy rasm havolalarini yig'ish
     const validImages: string[] = items
-      .map((i: any) => getAbsoluteImageUrl(i.image))
+      .map((i: any) => getAbsoluteImageUrl(i.image || i.product_image))
       .filter((url: string | null): url is string => Boolean(url && url.startsWith("http")));
 
     // Barcha yuboriladigan manzillar: kanal va adminlar
@@ -186,7 +243,7 @@ export async function POST(req: Request) {
     // Barcha qabul qiluvchilarga (kanal va adminlarga) yuborish
     await Promise.allSettled(recipients.map((chatId) => sendToChat(chatId as string)));
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, orderId, orderNumber });
   } catch (err) {
     console.error("Checkout route error:", err);
     return NextResponse.json({ success: false, error: String(err) }, { status: 500 });

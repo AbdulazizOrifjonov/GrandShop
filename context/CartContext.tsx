@@ -8,9 +8,11 @@ import {
   useMemo,
   useState,
 } from "react";
+import { useRouter } from "next/navigation";
 import { CartItem } from "@/types/database";
 import { useToast } from "@/context/ToastContext";
 import { useStore } from "@/lib/store";
+import { useAuth } from "@/lib/auth";
 
 interface CartContextValue {
   items: CartItem[];
@@ -30,20 +32,30 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [hydrated, setHydrated] = useState(false);
   const { showToast } = useToast();
   const { products, ready } = useStore();
+  const { user } = useAuth();
+  const router = useRouter();
 
   useEffect(() => {
+    if (!user) {
+      setItems([]);
+      setHydrated(true);
+      return;
+    }
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
+      const raw =
+        localStorage.getItem(`${STORAGE_KEY}_${user.id}`) ||
+        localStorage.getItem(STORAGE_KEY);
       if (raw) setItems(JSON.parse(raw));
+      else setItems([]);
     } catch {
       /* ignore */
     }
     setHydrated(true);
-  }, []);
+  }, [user]);
 
   // Bazadan o'chirilgan yoki mavjud bo'lmagan mahsulotlarni avtomatik tozalash
   useEffect(() => {
-    if (!hydrated || !ready || products.length === 0) return;
+    if (!hydrated || !ready || products.length === 0 || !user) return;
     setItems((prev) => {
       const valid = prev.filter((i) => products.some((p) => p.id === i.productId));
       if (valid.length !== prev.length) {
@@ -51,14 +63,19 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       }
       return prev;
     });
-  }, [hydrated, ready, products]);
+  }, [hydrated, ready, products, user]);
 
   useEffect(() => {
-    if (!hydrated) return;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-  }, [items, hydrated]);
+    if (!hydrated || !user) return;
+    localStorage.setItem(`${STORAGE_KEY}_${user.id}`, JSON.stringify(items));
+  }, [items, hydrated, user]);
 
   const addItem = useCallback((productId: string, quantity = 1) => {
+    if (!user) {
+      showToast("Xarid qilish uchun avval ro'yxatdan o'ting yoki tizimga kiring!", "warning");
+      router.push("/login?redirect=cart");
+      return;
+    }
     setItems((prev) => {
       const existing = prev.find((i) => i.productId === productId);
       if (existing) {
@@ -71,7 +88,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       return [...prev, { productId, quantity }];
     });
     showToast("Mahsulot savatchaga qo'shildi", "success");
-  }, [showToast]);
+  }, [user, router, showToast]);
 
   const removeItem = useCallback((productId: string) => {
     setItems((prev) => prev.filter((i) => i.productId !== productId));
@@ -86,16 +103,23 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     );
   }, []);
 
-  const clear = useCallback(() => setItems([]), []);
+  const clear = useCallback(() => {
+    setItems([]);
+    if (user) {
+      try {
+        localStorage.removeItem(`${STORAGE_KEY}_${user.id}`);
+      } catch {}
+    }
+  }, [user]);
 
   const isInCart = useCallback(
-    (productId: string) => items.some((i) => i.productId === productId),
-    [items]
+    (productId: string) => (user ? items.some((i) => i.productId === productId) : false),
+    [items, user]
   );
 
   const itemCount = useMemo(
-    () => items.reduce((sum, i) => sum + i.quantity, 0),
-    [items]
+    () => (user ? items.reduce((sum, i) => sum + i.quantity, 0) : 0),
+    [items, user]
   );
 
   return (

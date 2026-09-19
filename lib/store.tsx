@@ -35,7 +35,7 @@ interface StoreValue {
   deleteSlider: (id: string) => void;
   reorderSlider: (id: string, direction: "up" | "down") => void;
 
-  createOrder: (o: Omit<Order, "id" | "order_number" | "status" | "created_at">) => Order;
+  createOrder: (o: Omit<Order, "id" | "order_number" | "status" | "created_at"> & { id?: string; order_number?: string }) => Order;
   updateOrderStatus: (id: string, status: OrderStatus) => void;
 
   addPromocode: (p: Partial<Promocode>) => Promocode;
@@ -137,7 +137,34 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           }
           setSliders(s.filter((item) => !item.id.startsWith("system_")));
         }
-        if (o) setOrders(o);
+        if (o) {
+          setOrders(
+            o.map((row: any) => ({
+              id: row.id,
+              order_number: row.order_number || `ORD-${String(row.id).slice(0, 6)}`,
+              user_id: row.user_id || (Array.isArray(row.items) && row.items[0]?.user_id) || null,
+              full_name: row.customer_name || row.full_name || "Mijoz",
+              phone: row.phone || "",
+              address: row.address || "",
+              note: row.note || (Array.isArray(row.items) && row.items[0]?.note) || null,
+              subtotal: Number(row.total_amount || row.total || 0),
+              delivery_fee: Number(row.delivery_fee || 0),
+              discount: Number(row.discount || 0),
+              total: Number(row.total_amount || row.total || 0),
+              status: (row.status as OrderStatus) || "new",
+              items: (Array.isArray(row.items) ? row.items : []).map((it: any) => ({
+                id: it.id || it.product_id || "",
+                order_id: row.id,
+                product_id: it.product_id || it.id || "",
+                product_name: it.product_name || it.name || "Mahsulot",
+                product_image: it.product_image || it.image || null,
+                price: Number(it.price || 0),
+                quantity: Number(it.quantity || 1),
+              })),
+              created_at: row.created_at || new Date().toISOString(),
+            }))
+          );
+        }
       } catch (e) {
         console.error(e);
       } finally {
@@ -146,7 +173,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     }
     loadData();
 
-    // Optional: Add realtime subscription for products
+    // Realtime subscription for products & orders
     const channel = supabase.channel('schema-db-changes')
       .on(
         'postgres_changes',
@@ -161,6 +188,61 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
             setProducts((prev) => prev.map((item) => item.id === payload.new.id ? (payload.new as Product) : item));
           } else if (payload.eventType === 'DELETE') {
             setProducts((prev) => prev.filter((item) => item.id !== payload.old.id));
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'orders' },
+        (payload) => {
+          if (payload.eventType === 'INSERT') {
+            const row: any = payload.new;
+            const mappedOrder: Order = {
+              id: row.id,
+              order_number: row.order_number || `ORD-${String(row.id).slice(0, 6)}`,
+              user_id: row.user_id || (Array.isArray(row.items) && row.items[0]?.user_id) || null,
+              full_name: row.customer_name || row.full_name || "Mijoz",
+              phone: row.phone || "",
+              address: row.address || "",
+              note: row.note || (Array.isArray(row.items) && row.items[0]?.note) || null,
+              subtotal: Number(row.total_amount || row.total || 0),
+              delivery_fee: Number(row.delivery_fee || 0),
+              discount: Number(row.discount || 0),
+              total: Number(row.total_amount || row.total || 0),
+              status: (row.status as OrderStatus) || "new",
+              items: (Array.isArray(row.items) ? row.items : []).map((it: any) => ({
+                id: it.id || it.product_id || "",
+                order_id: row.id,
+                product_id: it.product_id || it.id || "",
+                product_name: it.product_name || it.name || "Mahsulot",
+                product_image: it.product_image || it.image || null,
+                price: Number(it.price || 0),
+                quantity: Number(it.quantity || 1),
+              })),
+              created_at: row.created_at || new Date().toISOString(),
+            };
+            setOrders((prev) => {
+              if (prev.find((ord) => ord.id === mappedOrder.id)) return prev;
+              return [mappedOrder, ...prev];
+            });
+          } else if (payload.eventType === 'UPDATE') {
+            const row: any = payload.new;
+            setOrders((prev) =>
+              prev.map((item) =>
+                item.id === row.id
+                  ? {
+                      ...item,
+                      status: (row.status as OrderStatus) || item.status,
+                      full_name: row.customer_name || row.full_name || item.full_name,
+                      phone: row.phone || item.phone,
+                      address: row.address || item.address,
+                      total: Number(row.total_amount || row.total || item.total),
+                    }
+                  : item
+              )
+            );
+          } else if (payload.eventType === 'DELETE') {
+            setOrders((prev) => prev.filter((item) => item.id !== payload.old.id));
           }
         }
       )
@@ -289,18 +371,49 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     // simplified optimistic
   }, []);
 
-  const createOrder = useCallback((o: Omit<Order, "id" | "order_number" | "status" | "created_at">) => {
+  const createOrder = useCallback((o: Omit<Order, "id" | "order_number" | "status" | "created_at"> & { id?: string; order_number?: string }) => {
     const num = Math.floor(100000 + Math.random() * 900000);
+    const orderId = o.id || (typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : uid("o"));
+    const orderNumber = o.order_number || `ORD-${num}`;
     const newOrder: Order = {
       ...o,
-      id: crypto.randomUUID?.() || uid("o"),
-      order_number: `ORD-${num}`,
+      id: orderId,
+      order_number: orderNumber,
       status: "new",
       created_at: new Date().toISOString(),
     };
-    setOrders((prev) => [newOrder, ...prev]);
-    supabase.from('orders').insert(newOrder).then(({ error }) => {
-      if (error) console.error("Error adding order:", error);
+    setOrders((prev) => {
+      if (prev.find((ord) => ord.id === newOrder.id)) return prev;
+      return [newOrder, ...prev];
+    });
+
+    const formattedItems = (newOrder.items || []).map((it) => ({
+      id: it.product_id || it.id || "",
+      product_id: it.product_id || it.id || "",
+      name: it.product_name || (it as any).name || "Mahsulot",
+      product_name: it.product_name || (it as any).name || "Mahsulot",
+      price: Number(it.price || 0),
+      quantity: Number(it.quantity || 1),
+      image: it.product_image || (it as any).image || null,
+      product_image: it.product_image || (it as any).image || null,
+      user_id: newOrder.user_id || null,
+      note: newOrder.note || null,
+    }));
+
+    const dbRow = {
+      id: orderId,
+      order_number: orderNumber,
+      customer_name: newOrder.full_name,
+      phone: newOrder.phone,
+      address: newOrder.address,
+      total_amount: newOrder.total,
+      status: "new",
+      items: formattedItems,
+      created_at: newOrder.created_at,
+    };
+
+    supabase.from('orders').upsert(dbRow).then(({ error }) => {
+      if (error) console.error("Error adding order to Supabase:", error);
     });
     return newOrder;
   }, []);
