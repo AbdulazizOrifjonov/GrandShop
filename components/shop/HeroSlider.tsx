@@ -101,7 +101,7 @@ export function HeroSlider({ sliders }: { sliders: Slider[] }) {
 
   return (
     <section 
-      className="relative w-full overflow-hidden bg-navy-950 text-white min-h-[290px] sm:min-h-[350px] md:min-h-[400px] lg:min-h-[440px] h-[40vh] sm:h-[46vh] max-h-[460px] flex items-center select-none"
+      className="relative w-full overflow-hidden bg-navy-950 text-white min-h-[300px] sm:min-h-[360px] md:min-h-[400px] lg:min-h-[440px] h-[44vh] max-h-[460px] select-none"
       onTouchStart={onTouchStart}
       onTouchMove={onTouchMove}
       onTouchEnd={onTouchEnd}
@@ -119,66 +119,55 @@ export function HeroSlider({ sliders }: { sliders: Slider[] }) {
               alt={slide.title}
               fill
               priority={i === 0}
-              className="object-cover object-center opacity-65 scale-105 transition-transform duration-[6000ms] ease-out"
+              className="object-cover object-center opacity-85 scale-105 transition-transform duration-[6000ms] ease-out"
             />
           )}
-          {/* Dark Luxury Gradient Overlays */}
-          <div className="absolute inset-0 bg-gradient-to-t from-navy-950 via-navy-950/60 to-transparent sm:bg-gradient-to-r sm:from-navy-950/95 sm:via-navy-950/70 sm:to-transparent" />
 
-          <div className="container-shop relative flex h-full flex-col justify-center gap-2.5 sm:gap-3 py-6 sm:py-10">
-            <div className="inline-flex items-center gap-1.5 rounded-full bg-gold-500/20 border border-gold-400/30 px-2.5 py-0.5 text-[9px] sm:text-[11px] font-bold uppercase tracking-widest text-gold-400 w-fit backdrop-blur-xs">
-              <Sparkles size={11} className="text-gold-400" />
-              <span>GRAND WATCH COLLECTION</span>
+          {/* Top & Bottom Vignettes (center stays clear for watch dial) */}
+          <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-navy-950/80 via-transparent to-navy-950/90" />
+          <div className="absolute inset-0 pointer-events-none sm:bg-gradient-to-r sm:from-navy-950/70 sm:via-transparent sm:to-transparent" />
+
+          {/* Content: Justify Between (Title pushed TOP, Buttons pushed BOTTOM, Center CLEAR) */}
+          <div className="container-shop relative flex h-full flex-col justify-between py-4 sm:py-6 pointer-events-none">
+            {/* Top Section */}
+            <div className="pointer-events-auto pt-1">
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-navy-950/75 border border-gold-400/40 px-2.5 py-0.5 text-[9px] sm:text-[11px] font-bold uppercase tracking-widest text-gold-400 w-fit backdrop-blur-md shadow-xs">
+                <Sparkles size={11} className="text-gold-400" />
+                <span>GRAND WATCH COLLECTION</span>
+              </div>
+
+              <h1 className="mt-1.5 max-w-xl font-serif text-lg sm:text-2xl md:text-3xl lg:text-4xl font-bold leading-tight tracking-tight text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
+                {slide.title}
+              </h1>
             </div>
 
-            <h1 className="max-w-xl font-serif text-xl sm:text-3xl md:text-4xl lg:text-5xl font-bold leading-tight tracking-tight text-white drop-shadow-md">
-              {slide.title}
-            </h1>
+            {/* Bottom Section (Buttons & Subtitle at bottom) */}
+            <div className="pointer-events-auto pb-5 sm:pb-4 space-y-2">
+              {slide.subtitle && (
+                <p className="max-w-md text-[11px] sm:text-xs md:text-sm text-white/90 leading-snug drop-shadow-[0_1px_6px_rgba(0,0,0,0.85)] line-clamp-1 sm:line-clamp-2">
+                  {slide.subtitle}
+                </p>
+              )}
 
-            {slide.subtitle && (
-              <p className="max-w-md text-[11px] sm:text-xs md:text-sm text-white/80 leading-relaxed drop-shadow line-clamp-2 sm:line-clamp-none">
-                {slide.subtitle}
-              </p>
-            )}
+              {/* Action Buttons */}
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                <Link
+                  href={slide.link ?? "/products"}
+                  className="inline-flex items-center gap-1.5 rounded-full bg-white px-3.5 sm:px-5 py-1.5 sm:py-2 text-xs sm:text-sm font-bold text-navy-950 transition hover:bg-gold-500 hover:text-navy-950 shadow-md active:scale-95"
+                >
+                  <span>{slide.button_text || "Katalogni ko'rish"}</span>
+                  <ArrowRight size={13} />
+                </Link>
 
-            {/* Action Buttons */}
-            <div className="mt-1 sm:mt-2.5 flex flex-wrap items-center gap-2 sm:gap-3">
-              <Link
-                href={slide.link ?? "/products"}
-                className="inline-flex items-center gap-1.5 rounded-full bg-white px-4 sm:px-6 py-2 sm:py-2.5 text-xs sm:text-sm font-bold text-navy-950 transition hover:bg-gold-500 hover:text-navy-950 shadow-md active:scale-95"
-              >
-                <span>{slide.button_text || "Katalogni ko'rish"}</span>
-                <ArrowRight size={14} />
-              </Link>
-
-              <a
-                href="https://t.me/Grandwatch_Admin"
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-1.5 rounded-full bg-navy-900/80 border border-white/25 px-3.5 sm:px-5 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold text-white/90 hover:bg-white/15 hover:border-white/40 transition backdrop-blur-md shadow-md active:scale-95"
-              >
-                <Send size={13} className="text-sky-400" />
-                <span>Telegram Maslahat</span>
-              </a>
-            </div>
-
-            {/* Trust Stats on Desktop */}
-            <div className="mt-3 hidden gap-8 text-xs md:flex lg:gap-10 pt-3 border-t border-white/10 max-w-lg">
-              <div>
-                <div className="text-base font-bold text-white">1000+</div>
-                <div className="text-white/60 text-[11px]">Mijozlar</div>
-              </div>
-              <div>
-                <div className="text-base font-bold text-white">100%</div>
-                <div className="text-white/60 text-[11px]">Asl mahsulotlar</div>
-              </div>
-              <div>
-                <div className="text-base font-bold text-white">12 Oy</div>
-                <div className="text-white/60 text-[11px]">Rasmiy kafolat</div>
-              </div>
-              <div>
-                <div className="text-base font-bold text-white">24/7</div>
-                <div className="text-white/60 text-[11px]">Yetkazib berish</div>
+                <a
+                  href="https://t.me/Grandwatch_Admin"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1.5 rounded-full bg-navy-950/80 border border-white/30 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold text-white/95 hover:bg-white/20 transition backdrop-blur-md shadow-md active:scale-95"
+                >
+                  <Send size={12} className="text-sky-400" />
+                  <span>Telegram Maslahat</span>
+                </a>
               </div>
             </div>
           </div>
@@ -206,7 +195,7 @@ export function HeroSlider({ sliders }: { sliders: Slider[] }) {
           </button>
 
           {/* Indicator Pills */}
-          <div className="pointer-events-auto absolute bottom-3 sm:bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-1.5">
+          <div className="pointer-events-auto absolute bottom-2 sm:bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5">
             {active.map((s, i) => (
               <button
                 key={s.id}
