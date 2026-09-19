@@ -73,7 +73,7 @@ export async function insertProduct(
     category_id: categoryId,
     brand,
     stock: 10,
-    sku: `BOT-${messageId}`,
+    sku: messageId.startsWith("TG-") || messageId.startsWith("BOT-") ? messageId : `BOT-${messageId}`,
     rating: 5.0,
     reviews_count: 0,
     image: imageUrls.length > 0 ? imageUrls[0] : null,

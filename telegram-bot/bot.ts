@@ -19,6 +19,7 @@ interface PendingProduct {
   messageId: number;
   text: string;
   photoIds: string[];
+  photoUniqueId?: string;
   parsed: ParsedProduct | null;
   timer?: any;
 }
@@ -42,11 +43,13 @@ bot.on(message("photo"), async (ctx) => {
   const mediaGroupId = ctx.message.media_group_id || `single_${ctx.message.message_id}`;
   const photos = ctx.message.photo;
   const bestPhoto = photos[photos.length - 1];
+  const uniqueId = bestPhoto.file_unique_id;
   const text = ctx.message.caption || "";
 
   if (pendingGroups.has(mediaGroupId)) {
     const group = pendingGroups.get(mediaGroupId)!;
     group.photoIds.push(bestPhoto.file_id);
+    if (!group.photoUniqueId) group.photoUniqueId = uniqueId;
     if (text && !group.text) group.text = text;
     clearTimeout(group.timer);
     group.timer = setTimeout(() => processMediaGroup(ctx, mediaGroupId), 3000);
@@ -56,6 +59,7 @@ bot.on(message("photo"), async (ctx) => {
       messageId: ctx.message.message_id,
       text: text,
       photoIds: [bestPhoto.file_id],
+      photoUniqueId: uniqueId,
       parsed: null,
     };
     group.timer = setTimeout(() => processMediaGroup(ctx, mediaGroupId), 3000);
@@ -87,10 +91,33 @@ async function processMediaGroup(ctx: Context, mediaGroupId: string) {
       return;
     }
 
-    // Check duplicate in Supabase (safe check without .single() error)
-    const { data: dup } = await supabase.from('products').select('id').ilike('name', parsed.name.trim()).limit(1);
-    if (dup && dup.length > 0) {
-      if (statusMsg) await ctx.telegram.editMessageText(ctx.chat?.id, statusMsg.message_id, undefined, `⚠️ **Dublikat:** ${parsed.name} avval qo'shilgan, o'tkazib yuborildi.`, { parse_mode: "Markdown" });
+    // Ensure price is valid
+    let finalPrice = parsed.price;
+    if (!finalPrice || finalPrice <= 0) {
+      finalPrice = 100; // safe default if absolutely no price in text
+    }
+
+    const photoSku = group.photoUniqueId ? `TG-${group.photoUniqueId}` : `BOT-${group.messageId}`;
+
+    // 1. Check if the EXACT SAME photo was already uploaded
+    if (group.photoUniqueId) {
+      const { data: dupPhoto } = await supabase.from('products').select('id').eq('sku', photoSku).limit(1);
+      if (dupPhoto && dupPhoto.length > 0) {
+        if (statusMsg) await ctx.telegram.editMessageText(ctx.chat?.id, statusMsg.message_id, undefined, `⚠️ **Dublikat:** Bu soat fotosurati avval saytga qo'shilgan, o'tkazib yuborildi.`, { parse_mode: "Markdown" });
+        return;
+      }
+    }
+
+    // 2. Check if identical name AND identical price already exist
+    const { data: dupNamePrice } = await supabase
+      .from('products')
+      .select('id')
+      .ilike('name', parsed.name.trim())
+      .eq('price', finalPrice)
+      .limit(1);
+    if (dupNamePrice && dupNamePrice.length > 0) {
+      const formattedPrice = finalPrice < 100000 ? "$" + finalPrice.toLocaleString("ru-RU") : finalPrice.toLocaleString("ru-RU") + " so'm";
+      if (statusMsg) await ctx.telegram.editMessageText(ctx.chat?.id, statusMsg.message_id, undefined, `⚠️ **Dublikat:** ${parsed.name} (${formattedPrice}) avval qo'shilgan, o'tkazib yuborildi.`, { parse_mode: "Markdown" });
       return;
     }
 
@@ -136,19 +163,13 @@ async function processMediaGroup(ctx: Context, mediaGroupId: string) {
       }
     }
 
-    // Ensure price is valid
-    let finalPrice = parsed.price;
-    if (!finalPrice || finalPrice <= 0) {
-      finalPrice = 100; // safe default if absolutely no price in text
-    }
-
     const productId = await insertProduct(
       parsed.name,
       parsed.description,
       finalPrice,
       parsed.characteristics,
       uploadedUrls,
-      group.messageId.toString(),
+      photoSku,
       catId,
       finalBrand
     );
