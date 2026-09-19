@@ -74,20 +74,20 @@ export function ProductCard({
   return (
     <div
       className={cn(
-        "group relative rounded-2xl border border-navy-100/90 bg-white p-2.5 sm:p-3 transition-all duration-300 hover:shadow-xl hover:border-navy-200 card-touch",
-        variant === "full" ? "flex flex-row gap-4" : "flex h-full flex-col"
+        "group relative rounded-xl sm:rounded-2xl border border-navy-100/90 bg-white p-[3px] sm:p-3 transition-all duration-300 hover:shadow-xl hover:border-navy-200 card-touch",
+        variant === "full" ? "flex flex-row gap-3 sm:gap-4 p-2 sm:p-3" : "flex h-full flex-col"
       )}
     >
       <div
         className={cn(
-          "relative overflow-hidden rounded-xl bg-navy-50/70 shrink-0",
-          variant === "full" ? "h-40 w-40 md:h-48 md:w-48" : "mb-2.5 aspect-[4/5] w-full"
+          "relative overflow-hidden rounded-lg sm:rounded-xl bg-navy-50/70 shrink-0",
+          variant === "full" ? "h-40 w-40 md:h-48 md:w-48" : "mb-1 sm:mb-2.5 aspect-[4/5] w-full"
         )}
       >
         {(discount > 0 || product.is_new) && (
           <span
             className={cn(
-              "absolute left-2 top-2 z-20 rounded-md px-2 py-0.5 text-[10px] font-bold tracking-wide uppercase text-white shadow-xs",
+              "absolute left-1.5 top-1.5 sm:left-2 sm:top-2 z-20 rounded px-1.5 py-0.5 text-[9px] sm:text-[10px] font-bold tracking-wide uppercase text-white shadow-xs",
               discount > 0 ? "bg-danger" : "bg-navy-900"
             )}
           >
@@ -96,17 +96,17 @@ export function ProductCard({
         )}
 
         {/* Mechanism tag */}
-        <span className="absolute left-2 bottom-2 z-20 rounded-md bg-navy-950/75 backdrop-blur-xs px-1.5 py-0.5 text-[9px] font-semibold tracking-wider text-white/95 uppercase shadow-xs pointer-events-none">
+        <span className="absolute left-1.5 bottom-1.5 sm:left-2 sm:bottom-2 z-20 rounded bg-navy-950/75 backdrop-blur-xs px-1.5 py-0.5 text-[8px] sm:text-[9px] font-semibold tracking-wider text-white/95 uppercase shadow-xs pointer-events-none">
           {product.mechanism || "Avtomatik"}
         </span>
 
         <button
           onClick={() => toggle(product.id)}
           aria-label="Sevimlilarga qo'shish"
-          className="absolute right-2 top-2 z-20 flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-white/90 shadow-sm transition hover:bg-white touch-target hover:scale-105"
+          className="absolute right-1.5 top-1.5 sm:right-2 sm:top-2 z-20 flex h-7 w-7 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-white/90 shadow-sm transition hover:bg-white touch-target hover:scale-105"
         >
           <Heart
-            size={17}
+            size={15}
             className={wished ? "fill-danger text-danger" : "text-navy-900"}
           />
         </button>
@@ -150,21 +150,21 @@ export function ProductCard({
           <>
             <button 
               onClick={handlePrev}
-              className="absolute left-2 top-1/2 -translate-y-1/2 z-20 flex h-7 w-7 items-center justify-center rounded-full bg-white/70 shadow-sm hover:bg-white text-navy-900 opacity-0 transition-opacity group-hover:opacity-100"
+              className="absolute left-1.5 top-1/2 -translate-y-1/2 z-20 flex h-6 w-6 sm:h-7 sm:w-7 items-center justify-center rounded-full bg-white/70 shadow-sm hover:bg-white text-navy-900 opacity-0 transition-opacity group-hover:opacity-100"
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m15 18-6-6 6-6"/></svg>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m15 18-6-6 6-6"/></svg>
             </button>
             <button 
               onClick={handleNext}
-              className="absolute right-2 top-1/2 -translate-y-1/2 z-20 flex h-7 w-7 items-center justify-center rounded-full bg-white/70 shadow-sm hover:bg-white text-navy-900 opacity-0 transition-opacity group-hover:opacity-100"
+              className="absolute right-1.5 top-1/2 -translate-y-1/2 z-20 flex h-6 w-6 sm:h-7 sm:w-7 items-center justify-center rounded-full bg-white/70 shadow-sm hover:bg-white text-navy-900 opacity-0 transition-opacity group-hover:opacity-100"
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m9 18 6-6-6-6"/></svg>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m9 18 6-6-6-6"/></svg>
             </button>
-            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-20 flex gap-1.5">
+            <div className="absolute bottom-1.5 left-1/2 -translate-x-1/2 z-20 flex gap-1 sm:gap-1.5">
               {images.map((_, idx) => (
                 <div 
                   key={idx} 
-                  className={cn("h-1.5 rounded-full transition-all", idx === activeIndex ? "w-3 bg-white" : "w-1.5 bg-white/50")}
+                  className={cn("h-1 sm:h-1.5 rounded-full transition-all", idx === activeIndex ? "w-2.5 sm:w-3 bg-white" : "w-1 sm:w-1.5 bg-white/50")}
                 />
               ))}
             </div>
@@ -172,26 +172,26 @@ export function ProductCard({
         )}
       </div>
 
-      <div className="flex flex-1 flex-col mt-1 sm:mt-0">
+      <div className="flex flex-1 flex-col px-1 sm:px-0">
         {product.brand && (
-          <span className="text-[10px] font-extrabold uppercase tracking-wider text-navy-900/55 mb-0.5 block font-mono">
+          <span className="text-[9px] sm:text-[10px] font-extrabold uppercase tracking-wider text-navy-900/55 mb-0.5 block font-mono leading-none">
             {product.brand}
           </span>
         )}
-        <Link href={`/products/${product.slug}`} className="mb-1 line-clamp-2 text-[13px] sm:text-sm font-semibold text-navy-900 hover:text-gold-500 md:text-base leading-snug">
+        <Link href={`/products/${product.slug}`} className="mb-0.5 sm:mb-1 line-clamp-2 text-[12px] sm:text-sm font-semibold text-navy-900 hover:text-gold-500 md:text-base leading-snug">
           {product.name}
         </Link>
-        <p className="mb-1.5 text-[10px] sm:text-xs text-navy-900/50 md:text-sm">{categoryName}</p>
-        <RatingStars rating={product.rating ?? 0} reviews={product.reviews_count} />
+        <p className="mb-1 sm:mb-1.5 text-[10px] sm:text-xs text-navy-900/50 md:text-sm leading-none">{categoryName}</p>
+        <RatingStars rating={product.rating ?? 0} reviews={product.reviews_count} size={12} />
         
         {variant === "full" && (
-          <p className="mt-3 hidden text-sm text-navy-900/70 md:line-clamp-2">
+          <p className="mt-2 hidden text-sm text-navy-900/70 md:line-clamp-2">
             {product.description}
           </p>
         )}
 
-        <div className={cn("mt-auto pt-3", variant === "full" ? "flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3" : "")}>
-          <div className={cn("mb-2", variant === "full" ? "mb-0" : "")}>
+        <div className={cn("mt-auto pt-1.5 sm:pt-3", variant === "full" ? "flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3" : "")}>
+          <div className={cn("mb-1 sm:mb-2", variant === "full" ? "mb-0" : "")}>
             <div className="text-[13px] sm:text-[15px] md:text-lg font-bold text-navy-900 leading-tight">
               {formatSom(product.price)}
             </div>
@@ -202,20 +202,20 @@ export function ProductCard({
             )}
           </div>
 
-          <div className={cn("flex items-center gap-1.5 sm:gap-2", variant === "full" ? "w-full sm:w-auto sm:min-w-[230px]" : "w-full")}>
+          <div className={cn("flex items-center gap-1 sm:gap-2", variant === "full" ? "w-full sm:w-auto sm:min-w-[230px]" : "w-full")}>
             <div className="flex-1">
               {cartItem ? (
-                <div className="flex h-9 sm:h-11 w-full items-center justify-between gap-1 sm:gap-2">
+                <div className="flex h-8 sm:h-11 w-full items-center justify-between gap-1 sm:gap-2">
                   <button
                     onClick={(e) => {
                       e.preventDefault();
                       updateQuantity(product.id, cartItem.quantity - 1);
                     }}
-                    className="flex h-full flex-1 items-center justify-center rounded-md sm:rounded-lg bg-navy-900 text-lg sm:text-xl font-medium text-white transition hover:bg-navy-800"
+                    className="flex h-full flex-1 items-center justify-center rounded-md sm:rounded-lg bg-navy-900 text-base sm:text-xl font-medium text-white transition hover:bg-navy-800"
                   >
                     -
                   </button>
-                  <div className="flex h-full w-9 sm:w-12 shrink-0 items-center justify-center rounded-md sm:rounded-lg border border-navy-900/20 text-[13px] sm:text-[15px] font-bold text-navy-900 bg-white">
+                  <div className="flex h-full w-8 sm:w-12 shrink-0 items-center justify-center rounded-md sm:rounded-lg border border-navy-900/20 text-xs sm:text-[15px] font-bold text-navy-900 bg-white">
                     {cartItem.quantity}
                   </div>
                   <button
@@ -224,7 +224,7 @@ export function ProductCard({
                       updateQuantity(product.id, cartItem.quantity + 1);
                     }}
                     disabled={cartItem.quantity >= product.stock}
-                    className="flex h-full flex-1 items-center justify-center rounded-md sm:rounded-lg bg-navy-900 text-lg sm:text-xl font-medium text-white transition hover:bg-navy-800 disabled:opacity-40"
+                    className="flex h-full flex-1 items-center justify-center rounded-md sm:rounded-lg bg-navy-900 text-base sm:text-xl font-medium text-white transition hover:bg-navy-800 disabled:opacity-40"
                   >
                     +
                   </button>
@@ -236,9 +236,9 @@ export function ProductCard({
                     addItem(product.id);
                   }}
                   disabled={outOfStock}
-                  className="flex h-9 sm:h-11 w-full items-center justify-center gap-1.5 sm:gap-2 rounded-md sm:rounded-lg bg-navy-900 px-2 sm:px-3 text-[11px] sm:text-sm font-medium text-white transition hover:bg-navy-800 disabled:opacity-40"
+                  className="flex h-8 sm:h-11 w-full items-center justify-center gap-1 sm:gap-2 rounded-md sm:rounded-lg bg-navy-900 px-1.5 sm:px-3 text-[11px] sm:text-sm font-medium text-white transition hover:bg-navy-800 disabled:opacity-40"
                 >
-                  <ShoppingCart size={14} className="sm:w-4 sm:h-4" />
+                  <ShoppingCart size={13} className="sm:w-4 sm:h-4" />
                   <span>
                     <span className="hidden sm:inline">{outOfStock ? "Tugagan" : "Savatchaga"}</span>
                     <span className="sm:hidden">{outOfStock ? "Yo'q" : "Savat"}</span>
@@ -254,9 +254,9 @@ export function ProductCard({
               rel="noreferrer"
               title="Telegram orqali 1 bosishda buyurtma berish"
               onClick={(e) => e.stopPropagation()}
-              className="flex h-9 sm:h-11 w-9 sm:w-11 shrink-0 items-center justify-center rounded-md sm:rounded-lg border border-sky-200 bg-sky-50 text-sky-600 hover:bg-sky-500 hover:text-white transition shadow-xs"
+              className="flex h-8 sm:h-11 w-8 sm:w-11 shrink-0 items-center justify-center rounded-md sm:rounded-lg border border-sky-200 bg-sky-50 text-sky-600 hover:bg-sky-500 hover:text-white transition shadow-xs"
             >
-              <Send size={15} />
+              <Send size={13} className="sm:w-3.5 sm:h-3.5" />
             </a>
           </div>
         </div>
