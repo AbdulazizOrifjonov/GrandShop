@@ -1,4 +1,4 @@
-import { generateObject } from "ai";
+﻿import { generateObject } from "ai";
 import { openai } from "@ai-sdk/openai";
 import { google } from "@ai-sdk/google";
 import { z } from "zod";
@@ -8,7 +8,7 @@ dotenv.config();
 
 const ProductSchema = z.object({
   name: z.string().describe("The name or brand of the product. If not clear, return empty string."),
-  price: z.number().nullable().describe("The price in numbers (e.g. 1300000). If missing, return null."),
+  price: z.number().nullable().describe("The price as a raw integer number (e.g. 1300000). Extract any price amount (sum, usd, ruble, tenge) and return just the number. If absolutely no price is present, return null."),
   description: z.string().describe("A clean description of the product without emojis."),
   characteristics: z.array(z.string()).describe("A list of key specifications or characteristics."),
 });
@@ -110,3 +110,4 @@ ${text}
     return null;
   }
 }
+
