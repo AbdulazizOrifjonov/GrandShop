@@ -30,15 +30,15 @@ export default function WishlistPage() {
           </div>
         </div>
 
-        <div className="mb-5 flex items-center justify-between">
-          <span className="text-sm text-navy-900/50">{wished.length} ta mahsulot</span>
+        <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+          <span className="text-xs sm:text-sm text-navy-900/50">{wished.length} ta mahsulot</span>
           {wished.length > 0 && (
-            <div className="flex items-center gap-4">
-              <button onClick={clear} className="flex items-center gap-1 text-sm text-navy-900/70 hover:text-danger">
-                <Trash2 size={14} /> Barchasini o'chirish
+            <div className="flex items-center gap-2 sm:gap-3">
+              <button onClick={clear} className="flex items-center gap-1 text-xs sm:text-sm text-navy-900/70 hover:text-danger rounded-lg border border-navy-200/80 px-2.5 py-1.5 transition">
+                <Trash2 size={13} /> <span>Tozalash</span>
               </button>
-              <Link href="/products" className="rounded-lg bg-navy-900 px-4 py-2 text-sm font-medium text-white">
-                Katalogni ko'rish
+              <Link href="/products" className="rounded-lg bg-navy-900 px-3.5 py-1.5 text-xs sm:text-sm font-medium text-white hover:bg-navy-800 transition">
+                Katalog
               </Link>
             </div>
           )}

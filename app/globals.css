@@ -465,3 +465,16 @@ body, html {
 .animate-marquee:hover {
   animation-play-state: paused;
 }
+
+/* Hide Next.js dev tools overlay and dev indicators */
+nextjs-portal,
+[data-nextjs-toast],
+[data-nextjs-dev-tools],
+[data-nextjs-dialog-overlay],
+#next-route-announcer,
+#__next-build-watcher {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  opacity: 0 !important;
+}

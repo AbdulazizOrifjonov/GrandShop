@@ -38,16 +38,42 @@ export default function CartPage() {
 
       <div className="container-shop grid grid-cols-1 gap-8 pb-16 lg:grid-cols-[1fr_380px] lg:items-start">
         <div>
-          <div className="mb-5 flex items-center justify-between">
-            <div>
-              <h1 className="font-serif text-3xl font-bold text-navy-900">Savatcha</h1>
-              <p className="text-sm text-navy-900/50">Siz tanlagan mahsulotlar</p>
+          <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-4 border-b border-navy-100">
+            <div className="flex items-center justify-between w-full sm:w-auto">
+              <div>
+                <div className="flex items-center gap-2.5">
+                  <h1 className="font-serif text-2xl sm:text-3xl font-bold text-navy-900">Savatcha</h1>
+                  {detailed.length > 0 && (
+                    <span className="rounded-full bg-navy-100 px-2.5 py-0.5 text-xs font-bold text-navy-900">
+                      {detailed.length} ta
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs sm:text-sm text-navy-900/50 mt-0.5">Siz tanlagan mahsulotlar</p>
+              </div>
+
+              {/* Mobile Clear Button */}
+              {detailed.length > 0 && (
+                <button
+                  onClick={clear}
+                  className="sm:hidden flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50/70 px-2.5 py-1.5 text-xs font-semibold text-danger hover:bg-red-100 transition active:scale-95"
+                >
+                  <Trash2 size={13} />
+                  <span>Tozalash</span>
+                </button>
+              )}
             </div>
+
+            {/* Desktop Clear Button */}
             {detailed.length > 0 && (
-              <div className="flex items-center gap-3 text-sm">
-                <span className="text-navy-900/50">{detailed.length} ta mahsulot</span>
-                <button onClick={clear} className="flex items-center gap-1 text-navy-900/70 hover:text-danger">
-                  <Trash2 size={14} /> Barchasini o'chirish
+              <div className="hidden sm:flex items-center gap-3">
+                <span className="text-sm text-navy-900/50">{detailed.length} ta mahsulot</span>
+                <button
+                  onClick={clear}
+                  className="flex items-center gap-1.5 rounded-lg border border-navy-200/80 px-3.5 py-1.5 text-xs font-semibold text-navy-700 hover:bg-red-50 hover:text-danger hover:border-red-200 transition"
+                >
+                  <Trash2 size={14} />
+                  <span>Barchasini o'chirish</span>
                 </button>
               </div>
             )}
