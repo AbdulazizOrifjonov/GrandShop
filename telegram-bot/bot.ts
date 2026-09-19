@@ -175,11 +175,15 @@ async function processMediaGroup(ctx: Context, mediaGroupId: string) {
     );
 
     const formattedPrice = finalPrice < 100000 ? "$" + finalPrice.toLocaleString("ru-RU") : finalPrice.toLocaleString("ru-RU") + " so'm";
-    if (statusMsg) await ctx.telegram.editMessageText(ctx.chat?.id, statusMsg.message_id, undefined, `✅ **Qo'shildi:** ${parsed.name}\n💰 **Narx:** ${formattedPrice}\n🏷 **Brend:** ${finalBrand || "Mavjud emas"}`, { parse_mode: "Markdown" });
+    if (statusMsg) {
+      await ctx.telegram.editMessageText(ctx.chat?.id, statusMsg.message_id, undefined, `✅ **Qo'shildi:** ${parsed.name}\n💰 **Narx:** ${formattedPrice}\n🏷 **Brend:** ${finalBrand || "Mavjud emas"}`, { parse_mode: "Markdown" }).catch(() => {});
+    }
 
   } catch (err: any) {
-    console.error(err);
-    if (statusMsg) await ctx.telegram.editMessageText(ctx.chat?.id, statusMsg.message_id, undefined, "❌ Xatolik yuz berdi.");
+    console.error("Xatolik:", err?.message || err);
+    if (statusMsg) {
+      await ctx.telegram.editMessageText(ctx.chat?.id, statusMsg.message_id, undefined, "❌ Xatolik yuz berdi.").catch(() => {});
+    }
   }
 }
 
