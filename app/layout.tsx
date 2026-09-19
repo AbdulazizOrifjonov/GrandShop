@@ -8,6 +8,7 @@ import { AuthProvider } from "@/lib/auth";
 
 import { ToastProvider } from "@/context/ToastContext";
 import { MobileBottomNav } from "@/components/shop/MobileBottomNav";
+import { TelegramFloatingButton } from "@/components/shop/TelegramFloatingButton";
 
 export const metadata: Metadata = {
   title: "Grand Watch Shop — Premium soatlar do'koni",
@@ -38,6 +39,7 @@ export default function RootLayout({
                     <div className="pb-24 md:pb-0">{children}</div>
                   </Suspense>
                   <MobileBottomNav />
+                  <TelegramFloatingButton />
                 </WishlistProvider>
               </CartProvider>
             </AuthProvider>

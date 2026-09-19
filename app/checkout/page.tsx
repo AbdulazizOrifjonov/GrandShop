@@ -102,13 +102,34 @@ export default function CheckoutPage() {
           <p className="mt-2 max-w-md text-navy-900/60">
             Buyurtma raqami: <span className="font-semibold text-navy-900">#{placedOrder}</span>. Tez orada operatorlarimiz siz bilan bog'lanadi.
           </p>
-          <div className="mt-8 flex gap-3">
+          <div className="mt-8 flex flex-wrap justify-center gap-3">
             <Link href="/orders" className="rounded-lg bg-navy-900 px-6 py-3 text-sm font-medium text-white">
               Buyurtmalarim
             </Link>
             <Link href="/products" className="rounded-lg border border-navy-100 px-6 py-3 text-sm font-medium">
               Xaridni davom ettirish
             </Link>
+          </div>
+
+          {/* Telegram Channel Community Invite */}
+          <div className="mt-10 max-w-md w-full p-4 rounded-2xl bg-gradient-to-r from-sky-50 to-sky-100/50 border border-sky-200/80 text-center shadow-xs">
+            <p className="text-xs font-semibold uppercase tracking-wider text-[#0088cc]">VIP Jamiyat</p>
+            <h3 className="text-base font-bold text-navy-900 mt-1">Rasmiy Telegram Kanalimizga qo'shiling</h3>
+            <p className="text-xs text-navy-900/60 mt-1">
+              Yangi kelgan soatlar, jonli video-obzorlar va faqat obunachilar uchun maxsus chegirmalar!
+            </p>
+            <a
+              href="https://t.me/+tX9dQIISDYFlYWVi"
+              target="_blank"
+              rel="noreferrer"
+              className="mt-3.5 inline-flex items-center gap-2 rounded-xl bg-[#2AABEE] px-5 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-[#2298D6] transition"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M22 2L11 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              Telegram kanalga a'zo bo'lish 🚀
+            </a>
           </div>
         </div>
         <Footer />

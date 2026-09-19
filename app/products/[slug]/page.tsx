@@ -309,6 +309,35 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
               </div>
             </div>
           </div>
+
+          {/* Rasmiy Telegram Kanalimizga a'zo bo'ling Banner */}
+          <a
+            href="https://t.me/+tX9dQIISDYFlYWVi"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-4 flex items-center justify-between gap-3 p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-sky-50 via-sky-50/60 to-amber-50/40 border border-sky-200/80 hover:border-[#2AABEE] transition-all group shadow-xs"
+          >
+            <div className="flex items-center gap-3">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#2AABEE] text-white shadow-sm group-hover:scale-105 transition-transform">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M22 2L11 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+              <div>
+                <div className="text-xs sm:text-sm font-bold text-navy-950 group-hover:text-[#0088cc] transition-colors flex items-center gap-1.5">
+                  Rasmiy Telegram Kanalimiz
+                  <span className="text-[10px] bg-gold-500 text-navy-950 font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider">VIP</span>
+                </div>
+                <div className="text-[11px] sm:text-xs text-navy-900/70 mt-0.5">
+                  Jonli video-obzorlar, yangi soatlar va eksklyuziv narxlar!
+                </div>
+              </div>
+            </div>
+            <div className="hidden sm:flex items-center gap-1 text-xs font-bold text-[#0088cc] group-hover:translate-x-1 transition-transform shrink-0">
+              Kanalga o'tish →
+            </div>
+          </a>
         </div>
       </div>
 

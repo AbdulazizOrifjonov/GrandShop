@@ -63,8 +63,12 @@ export function Header({
                 <span className="text-gold-400 font-semibold">+998 97 765 71 80</span>
               </a>
               <span className="text-white/30">|</span>
-              <a href="https://t.me/Grandwatch_Admin" target="_blank" rel="noreferrer" className="hover:text-sky-300 transition text-sky-400">
-                Telegram: @Grandwatch_Admin
+              <a href="https://t.me/+tX9dQIISDYFlYWVi" target="_blank" rel="noreferrer" className="hover:text-sky-300 transition text-sky-400 font-semibold flex items-center gap-1">
+                <span>📢 Telegram Kanal</span>
+              </a>
+              <span className="text-white/30">|</span>
+              <a href="https://t.me/Grandwatch_Admin" target="_blank" rel="noreferrer" className="hover:text-white transition text-white/70">
+                Admin: @Grandwatch_Admin
               </a>
             </div>
           </div>
@@ -401,12 +405,34 @@ export function Header({
                   href="https://t.me/Grandwatch_Admin"
                   target="_blank"
                   rel="noreferrer"
-                  className="flex items-center justify-center gap-1.5 rounded-lg bg-sky-500 py-2 text-xs font-bold text-white shadow-xs hover:bg-sky-600 transition active:scale-95"
+                  className="flex items-center justify-center gap-1.5 rounded-lg bg-navy-900 py-2 text-xs font-bold text-white shadow-xs hover:bg-navy-800 transition active:scale-95"
                 >
                   <Send size={13} />
-                  Telegram
+                  Admin
                 </a>
               </div>
+
+              {/* Mobile Telegram Channel Banner */}
+              <a
+                href="https://t.me/+tX9dQIISDYFlYWVi"
+                target="_blank"
+                rel="noreferrer"
+                className="mt-2.5 flex items-center justify-between p-3 rounded-xl bg-gradient-to-r from-[#0088cc] to-[#2AABEE] text-white shadow-xs hover:opacity-95 transition active:scale-[0.98]"
+              >
+                <div className="flex items-center gap-2.5">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/20">
+                    <Send size={14} />
+                  </div>
+                  <div>
+                    <div className="text-xs font-bold leading-tight flex items-center gap-1">
+                      Telegram Kanalimiz
+                      <span className="text-[9px] bg-white text-navy-950 font-extrabold px-1.5 py-0.2 rounded-sm">VIP</span>
+                    </div>
+                    <div className="text-[10px] text-white/80">Yangi soatlar va chegirmalar</div>
+                  </div>
+                </div>
+                <span className="text-[11px] font-bold bg-white/25 px-2 py-0.5 rounded-md">A'zo bo'lish</span>
+              </a>
             </div>
 
             {/* Quick Categories Navigation */}
