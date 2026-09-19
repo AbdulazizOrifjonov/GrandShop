@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useMemo, useState } from "react";
+import { use, useMemo, useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -36,6 +36,29 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
   const [tab, setTab] = useState(TABS[0]);
 
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+
+  const getProductPageUrl = () => {
+    if (typeof window !== "undefined" && window.location.href) {
+      return window.location.href;
+    }
+    const slugVal = product?.slug || slug;
+    return `https://grand-shop-beryl.vercel.app/products/${encodeURIComponent(slugVal)}`;
+  };
+
+  const [telegramHref, setTelegramHref] = useState(() => {
+    const slugVal = product?.slug || slug;
+    const initialUrl = `https://grand-shop-beryl.vercel.app/products/${encodeURIComponent(slugVal)}`;
+    const text = `Assalomu alaykum, men ushbu soatni xarid qilmoqchiman:\n\n📦 Mahsulot: ${product?.name || ""}\n💰 Narxi: ${product ? formatSom(product.price) : ""}\n\n🔗 Havola:\n${initialUrl}`;
+    return `https://t.me/Grandwatch_Admin?text=${encodeURIComponent(text)}`;
+  });
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && product) {
+      const currentUrl = window.location.href;
+      const text = `Assalomu alaykum, men ushbu soatni xarid qilmoqchiman:\n\n📦 Mahsulot: ${product.name}\n💰 Narxi: ${formatSom(product.price)}\n\n🔗 Havola:\n${currentUrl}`;
+      setTelegramHref(`https://t.me/Grandwatch_Admin?text=${encodeURIComponent(text)}`);
+    }
+  }, [product, slug]);
 
   const gallery = useMemo(() => {
     if (!product) return [];
@@ -276,9 +299,16 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
             )}
 
             <a
-              href={`https://t.me/Grandwatch_Admin?text=${encodeURIComponent(`Assalomu alaykum, men ushbu soatingizga qiziqdim:\n\n📦 ${product.name}\n💰 ${formatSom(product.price)}\n\nHavola: `)}` + (typeof window !== 'undefined' ? window.location.href : '')}
+              href={telegramHref}
               target="_blank"
               rel="noopener noreferrer"
+              onClick={(e) => {
+                if (product) {
+                  const currentUrl = getProductPageUrl();
+                  const text = `Assalomu alaykum, men ushbu soatni xarid qilmoqchiman:\n\n📦 Mahsulot: ${product.name}\n💰 Narxi: ${formatSom(product.price)}\n\n🔗 Havola:\n${currentUrl}`;
+                  e.currentTarget.href = `https://t.me/Grandwatch_Admin?text=${encodeURIComponent(text)}`;
+                }
+              }}
               className="flex h-[52px] w-full items-center justify-center gap-2 rounded-xl bg-[#2AABEE] px-2 text-sm font-semibold text-white transition hover:bg-[#2298D6] shadow-md"
             >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">

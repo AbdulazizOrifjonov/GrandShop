@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Heart, ShoppingCart, Send } from "lucide-react";
@@ -30,6 +30,31 @@ export function ProductCard({
   const wished = isWished(product.id);
   const discount = product.discount ?? calcDiscount(product.price, product.old_price);
   const outOfStock = product.stock <= 0;
+
+  const getProductFullUrl = () => {
+    const slugVal = product.slug || product.id;
+    if (typeof window !== "undefined" && window.location.origin) {
+      return `${window.location.origin}/products/${encodeURIComponent(slugVal)}`;
+    }
+    return `https://grand-shop-beryl.vercel.app/products/${encodeURIComponent(slugVal)}`;
+  };
+
+  const [telegramHref, setTelegramHref] = useState(() => {
+    const slugVal = product.slug || product.id;
+    const url = `https://grand-shop-beryl.vercel.app/products/${encodeURIComponent(slugVal)}`;
+    const text = `Assalomu alaykum! Men ushbu soatni buyurtma qilmoqchi edim:\n\n📦 Mahsulot: ${product.name}\n💰 Narxi: ${formatSom(product.price)}\n\n🔗 Mahsulot havolasi:\n${url}`;
+    return `https://t.me/Grandwatch_Admin?text=${encodeURIComponent(text)}`;
+  });
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const origin = window.location.origin;
+      const slugVal = product.slug || product.id;
+      const url = `${origin}/products/${encodeURIComponent(slugVal)}`;
+      const text = `Assalomu alaykum! Men ushbu soatni buyurtma qilmoqchi edim:\n\n📦 Mahsulot: ${product.name}\n💰 Narxi: ${formatSom(product.price)}\n\n🔗 Mahsulot havolasi:\n${url}`;
+      setTelegramHref(`https://t.me/Grandwatch_Admin?text=${encodeURIComponent(text)}`);
+    }
+  }, [product.name, product.price, product.slug, product.id]);
 
   const [activeIndex, setActiveIndex] = useState(0);
   const [touchStart, setTouchStart] = useState(0);
@@ -249,11 +274,16 @@ export function ProductCard({
 
             {/* Direct Telegram Buy Button */}
             <a
-              href={`https://t.me/Grandwatch_Admin?text=${encodeURIComponent(`Assalomu alaykum! Men ushbu soatni buyurtma qilmoqchi edim:\n\n📦 ${product.name}\n💰 Narxi: ${formatSom(product.price)}`)}`}
+              href={telegramHref}
               target="_blank"
               rel="noreferrer"
               title="Telegram orqali 1 bosishda buyurtma berish"
-              onClick={(e) => e.stopPropagation()}
+              onClick={(e) => {
+                e.stopPropagation();
+                const url = getProductFullUrl();
+                const text = `Assalomu alaykum! Men ushbu soatni buyurtma qilmoqchi edim:\n\n📦 Mahsulot: ${product.name}\n💰 Narxi: ${formatSom(product.price)}\n\n🔗 Havola:\n${url}`;
+                e.currentTarget.href = `https://t.me/Grandwatch_Admin?text=${encodeURIComponent(text)}`;
+              }}
               className="flex h-8 sm:h-11 w-8 sm:w-11 shrink-0 items-center justify-center rounded-md sm:rounded-lg border border-sky-200 bg-sky-50 text-sky-600 hover:bg-sky-500 hover:text-white transition shadow-xs"
             >
               <Send size={13} className="sm:w-3.5 sm:h-3.5" />
