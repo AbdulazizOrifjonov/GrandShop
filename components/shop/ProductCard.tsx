@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Heart, ShoppingCart, Send } from "lucide-react";
 import { Product } from "@/types/database";
-import { formatSom, calcDiscount, cn } from "@/lib/utils";
+import { formatSom, calcDiscount, cn, getProductPublicUrl } from "@/lib/utils";
 import { RatingStars } from "./RatingStars";
 import { useWishlist } from "@/context/WishlistContext";
 import { useCart } from "@/context/CartContext";
@@ -32,28 +32,19 @@ export function ProductCard({
   const outOfStock = product.stock <= 0;
 
   const getProductFullUrl = () => {
-    const slugVal = product.slug || product.id;
-    if (typeof window !== "undefined" && window.location.origin) {
-      return `${window.location.origin}/products/${encodeURIComponent(slugVal)}`;
-    }
-    return `https://grand-shop-beryl.vercel.app/products/${encodeURIComponent(slugVal)}`;
+    return getProductPublicUrl(product.slug || product.id);
   };
 
   const [telegramHref, setTelegramHref] = useState(() => {
-    const slugVal = product.slug || product.id;
-    const url = `https://grand-shop-beryl.vercel.app/products/${encodeURIComponent(slugVal)}`;
-    const text = `Assalomu alaykum! Men ushbu soatni buyurtma qilmoqchi edim:\n\n📦 Mahsulot: ${product.name}\n💰 Narxi: ${formatSom(product.price)}\n\n🔗 Mahsulot havolasi:\n${url}`;
+    const url = getProductPublicUrl(product.slug || product.id);
+    const text = `Assalomu alaykum! Men ushbu soatni buyurtma qilmoqchi edim:\n\n📦 Mahsulot: ${product.name}\n💰 Narxi: ${formatSom(product.price)}\n\n🔗 Havola:\n${url}`;
     return `https://t.me/Grandwatch_Admin?text=${encodeURIComponent(text)}`;
   });
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const origin = window.location.origin;
-      const slugVal = product.slug || product.id;
-      const url = `${origin}/products/${encodeURIComponent(slugVal)}`;
-      const text = `Assalomu alaykum! Men ushbu soatni buyurtma qilmoqchi edim:\n\n📦 Mahsulot: ${product.name}\n💰 Narxi: ${formatSom(product.price)}\n\n🔗 Mahsulot havolasi:\n${url}`;
-      setTelegramHref(`https://t.me/Grandwatch_Admin?text=${encodeURIComponent(text)}`);
-    }
+    const url = getProductPublicUrl(product.slug || product.id);
+    const text = `Assalomu alaykum! Men ushbu soatni buyurtma qilmoqchi edim:\n\n📦 Mahsulot: ${product.name}\n💰 Narxi: ${formatSom(product.price)}\n\n🔗 Havola:\n${url}`;
+    setTelegramHref(`https://t.me/Grandwatch_Admin?text=${encodeURIComponent(text)}`);
   }, [product.name, product.price, product.slug, product.id]);
 
   const [activeIndex, setActiveIndex] = useState(0);

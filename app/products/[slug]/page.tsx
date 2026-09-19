@@ -18,7 +18,7 @@ import { ProductCard } from "@/components/shop/ProductCard";
 import { useStore } from "@/lib/store";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
-import { calcDiscount, formatSom } from "@/lib/utils";
+import { calcDiscount, formatSom, getProductPublicUrl } from "@/lib/utils";
 
 const TABS = ["Tavsif", "Xususiyatlar", "Sharhlar", "Yetkazib berish", "Qaytarish"];
 
@@ -38,24 +38,19 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
 
   const getProductPageUrl = () => {
-    if (typeof window !== "undefined" && window.location.href) {
-      return window.location.href;
-    }
-    const slugVal = product?.slug || slug;
-    return `https://grand-shop-beryl.vercel.app/products/${encodeURIComponent(slugVal)}`;
+    return getProductPublicUrl(product?.slug || slug);
   };
 
   const [telegramHref, setTelegramHref] = useState(() => {
-    const slugVal = product?.slug || slug;
-    const initialUrl = `https://grand-shop-beryl.vercel.app/products/${encodeURIComponent(slugVal)}`;
-    const text = `Assalomu alaykum, men ushbu soatni xarid qilmoqchiman:\n\n📦 Mahsulot: ${product?.name || ""}\n💰 Narxi: ${product ? formatSom(product.price) : ""}\n\n🔗 Havola:\n${initialUrl}`;
+    const url = getProductPublicUrl(product?.slug || slug);
+    const text = `Assalomu alaykum, men ushbu soatni xarid qilmoqchiman:\n\n📦 Mahsulot: ${product?.name || ""}\n💰 Narxi: ${product ? formatSom(product.price) : ""}\n\n🔗 Havola:\n${url}`;
     return `https://t.me/Grandwatch_Admin?text=${encodeURIComponent(text)}`;
   });
 
   useEffect(() => {
-    if (typeof window !== "undefined" && product) {
-      const currentUrl = window.location.href;
-      const text = `Assalomu alaykum, men ushbu soatni xarid qilmoqchiman:\n\n📦 Mahsulot: ${product.name}\n💰 Narxi: ${formatSom(product.price)}\n\n🔗 Havola:\n${currentUrl}`;
+    if (product) {
+      const url = getProductPublicUrl(product.slug || slug);
+      const text = `Assalomu alaykum, men ushbu soatni xarid qilmoqchiman:\n\n📦 Mahsulot: ${product.name}\n💰 Narxi: ${formatSom(product.price)}\n\n🔗 Havola:\n${url}`;
       setTelegramHref(`https://t.me/Grandwatch_Admin?text=${encodeURIComponent(text)}`);
     }
   }, [product, slug]);
