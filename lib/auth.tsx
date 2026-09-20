@@ -99,8 +99,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const cleanPhone = normalizePhone(phone);
       const isSuper = isSuperAdminPhone(cleanPhone);
 
-      // 1. Agar Super Admin raqami bo'lsa (Parol so'ralmaydi, to'g'ridan-to'g'ri Super Admin qilib kiritadi)
+      // 1. Agar Super Admin raqami bo'lsa
       if (isSuper) {
+        if (!password || password.trim().toLowerCase() !== "muzaffar") {
+          return { ok: false, error: "Admin paroli noto'g'ri!", isAdmin: true };
+        }
+
         const adminName = fullName?.trim() || "Muzaffar";
 
         const { data: existing } = await supabase
