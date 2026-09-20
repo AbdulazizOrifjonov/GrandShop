@@ -6,7 +6,7 @@ import { useState, Suspense } from "react";
 import { LogIn, UserPlus, ShieldCheck, Eye, EyeOff, AlertCircle, CheckCircle2 } from "lucide-react";
 import { Header } from "@/components/shop/Header";
 import { Footer } from "@/components/shop/Footer";
-import { useAuth, isSuperAdminPhone, normalizePhone } from "@/lib/auth";
+import { useAuth, isSuperAdminPhone, normalizePhone, formatUzPhone, getUzPhoneDigits } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 
 function AuthForm() {
@@ -25,15 +25,16 @@ function AuthForm() {
   const [loading, setLoading] = useState(false);
 
   const cleanPhone = normalizePhone(phone);
-  const isAdminPhoneDetected = isSuperAdminPhone(cleanPhone);
+  const phoneDigits = getUzPhoneDigits(phone);
+  const isAdminPhoneDetected = isSuperAdminPhone(phone);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
     setSuccessMsg("");
 
-    if (cleanPhone.length < 9) {
-      setError("Iltimos, to'g'ri telefon raqam kiriting.");
+    if (phoneDigits.length < 9) {
+      setError("Iltimos, to'liq 9 xonali telefon raqamingizni kiriting.");
       return;
     }
 
@@ -192,7 +193,21 @@ function AuthForm() {
               type="tel"
               required
               value={phone}
-              onChange={(e) => setPhone(e.target.value)}
+              onChange={(e) => {
+                const formatted = formatUzPhone(e.target.value);
+                setPhone(formatted);
+                setError("");
+              }}
+              onKeyDown={(e) => {
+                const target = e.currentTarget;
+                if (
+                  (e.key === "Backspace" || e.key === "Delete") &&
+                  (target.selectionStart ?? 0) <= 5 &&
+                  target.selectionStart === target.selectionEnd
+                ) {
+                  e.preventDefault();
+                }
+              }}
               className="w-full rounded-xl border border-navy-200/80 bg-white px-3.5 py-2.5 text-sm font-medium text-navy-950 outline-none focus:border-navy-900 focus:ring-2 focus:ring-navy-900/10 transition"
               placeholder="+998 -- --- -- --"
             />

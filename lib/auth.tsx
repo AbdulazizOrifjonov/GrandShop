@@ -14,29 +14,53 @@ export interface AppUser {
   createdAt: string;
 }
 
+// Faqat 2 ta ruxsat berilgan Super Admin raqami (boshqa hech qaysi raqamga admin parol chiqmaydi)
+export const ADMIN_NUMBERS = [
+  "977657180",
+  "935891969",
+];
+
 export const ADMIN_PHONES = [
   "+998977657180",
   "+998935891969",
-  "+998935821774",
 ];
 
-export function normalizePhone(phone: string): string {
-  let clean = phone.replace(/[^\d+]/g, "");
-  if (!clean.startsWith("+")) {
-    if (clean.startsWith("998")) {
-      clean = "+" + clean;
-    } else if (clean.length === 9) {
-      clean = "+998" + clean;
-    } else {
-      clean = "+998" + clean;
-    }
+export function getUzPhoneDigits(raw: string): string {
+  let digits = (raw || "").replace(/\D/g, "");
+  if (digits.startsWith("998")) {
+    digits = digits.slice(3);
   }
-  return clean;
+  return digits.slice(0, 9);
+}
+
+export function formatUzPhone(input: string): string {
+  const digits = getUzPhoneDigits(input);
+  if (!digits) {
+    return "+998 ";
+  }
+  let res = "+998 " + digits.slice(0, 2);
+  if (digits.length > 2) {
+    res += " " + digits.slice(2, 5);
+  }
+  if (digits.length > 5) {
+    res += " " + digits.slice(5, 7);
+  }
+  if (digits.length > 7) {
+    res += " " + digits.slice(7, 9);
+  }
+  return res;
+}
+
+export function normalizePhone(phone: string): string {
+  const digits = getUzPhoneDigits(phone);
+  return "+998" + digits;
 }
 
 export function isSuperAdminPhone(phone: string): boolean {
-  const norm = normalizePhone(phone);
-  return ADMIN_PHONES.includes(norm);
+  const digits = getUzPhoneDigits(phone);
+  // Faqat va faqat to'liq 9 ta raqam terilganda va ikkita raqamdan biriga 100% to'g'ri kelgandagina true!
+  // Agar 1 ta raqam boshqa bo'lsa ham yoki 9 tadan kam bo'lsa darhol false!
+  return digits.length === 9 && ADMIN_NUMBERS.includes(digits);
 }
 
 interface AuthValue {
