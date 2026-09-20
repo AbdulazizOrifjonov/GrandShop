@@ -14,10 +14,43 @@ export interface AppUser {
   createdAt: string;
 }
 
+export const ADMIN_PHONES = [
+  "+998977657180",
+  "+998935891969",
+  "+998935821774",
+];
+
+export function normalizePhone(phone: string): string {
+  let clean = phone.replace(/[^\d+]/g, "");
+  if (!clean.startsWith("+")) {
+    if (clean.startsWith("998")) {
+      clean = "+" + clean;
+    } else if (clean.length === 9) {
+      clean = "+998" + clean;
+    } else {
+      clean = "+998" + clean;
+    }
+  }
+  return clean;
+}
+
+export function isSuperAdminPhone(phone: string): boolean {
+  const norm = normalizePhone(phone);
+  return ADMIN_PHONES.includes(norm);
+}
+
 interface AuthValue {
   user: AppUser | null;
   ready: boolean;
-  login: (fullName: string, phone: string, password?: string) => Promise<{ ok: boolean; error?: string }>;
+  login: (
+    phone: string,
+    password?: string,
+    fullName?: string
+  ) => Promise<{ ok: boolean; error?: string; isAdmin?: boolean; notRegistered?: boolean }>;
+  signup: (
+    fullName: string,
+    phone: string
+  ) => Promise<{ ok: boolean; error?: string; isAdmin?: boolean; alreadyRegistered?: boolean }>;
   logout: () => void;
   updateProfile: (data: Partial<AppUser>) => Promise<void>;
   isAdmin: boolean;
@@ -48,39 +81,170 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     loadSession();
   }, [supabase]);
 
-  const login = useCallback(async (fullName: string, phone: string, password?: string) => {
-    const cleanPhone = phone.replace(/\s+/g, '');
-    const isAdminLogin = cleanPhone === "+998977657180" || cleanPhone === "+998935821774";
-    
-    if (isAdminLogin && password !== "GRANDWATCHSHOP") return { ok: false, error: "Parol noto'g'ri!" };
+  const login = useCallback(
+    async (arg1: string, arg2?: string, arg3?: string) => {
+      let fullName = "";
+      let phone = arg1;
+      let password = arg2;
 
-    const { data: existing } = await supabase.from("app_users").select("*").eq("phone", cleanPhone).single();
+      // Agar birinchi parametr ism bo'lib, ikkinchisi telefon raqam bo'lsa (eski chaqiruvlarni ham qo'llash)
+      if (arg1 && arg2 && (arg2.includes("+998") || /^\d{9,12}$/.test(arg2.replace(/\s+/g, "")))) {
+        fullName = arg1;
+        phone = arg2;
+        password = arg3;
+      } else if (arg3) {
+        fullName = arg3;
+      }
 
-    if (existing) {
-      const userData: AppUser = { id: existing.id, fullName: existing.full_name, phone: existing.phone, role: existing.role, createdAt: existing.created_at };
-      if (existing.full_name !== fullName) {
-        await supabase.from("app_users").update({ full_name: fullName }).eq("id", existing.id);
-        userData.fullName = fullName;
+      const cleanPhone = normalizePhone(phone);
+      const isSuper = isSuperAdminPhone(cleanPhone);
+
+      // 1. Agar Super Admin raqami bo'lsa
+      if (isSuper) {
+        if (password !== "GRANDWATCHSHOP") {
+          return { ok: false, error: "Admin paroli noto'g'ri!", isAdmin: true };
+        }
+
+        const adminName = fullName?.trim() || "Muzaffar";
+
+        const { data: existing } = await supabase
+          .from("app_users")
+          .select("*")
+          .eq("phone", cleanPhone)
+          .maybeSingle();
+
+        if (existing) {
+          const userData: AppUser = {
+            id: existing.id,
+            fullName: adminName,
+            phone: existing.phone,
+            role: "super_admin",
+            createdAt: existing.created_at,
+          };
+          await supabase
+            .from("app_users")
+            .update({ role: "super_admin", full_name: adminName })
+            .eq("id", existing.id);
+
+          setUser(userData);
+          localStorage.setItem(SESSION_KEY, userData.id);
+          return { ok: true, isAdmin: true };
+        } else {
+          const { data: newUser, error: insertError } = await supabase
+            .from("app_users")
+            .insert({
+              full_name: adminName,
+              phone: cleanPhone,
+              role: "super_admin",
+              password: password || "GRANDWATCHSHOP",
+            })
+            .select()
+            .single();
+
+          if (insertError || !newUser) {
+            return { ok: false, error: "Admin sifatida kirishda xatolik yuz berdi." };
+          }
+          const userData: AppUser = {
+            id: newUser.id,
+            fullName: newUser.full_name,
+            phone: newUser.phone,
+            role: "super_admin",
+            createdAt: newUser.created_at,
+          };
+          setUser(userData);
+          localStorage.setItem(SESSION_KEY, userData.id);
+          return { ok: true, isAdmin: true };
+        }
       }
-      if (isAdminLogin && existing.role !== 'super_admin') {
-        await supabase.from("app_users").update({ role: 'super_admin' }).eq("id", existing.id);
-        userData.role = 'super_admin';
+
+      // 2. Oddiy foydalanuvchi: faqat oldin ro'yxatdan o'tgan bo'lsa kiritadi!
+      const { data: existing, error: queryError } = await supabase
+        .from("app_users")
+        .select("*")
+        .eq("phone", cleanPhone)
+        .maybeSingle();
+
+      if (queryError) {
+        return { ok: false, error: "Ma'lumotlar bazasi bilan aloqa xatosi." };
       }
+
+      if (!existing) {
+        return {
+          ok: false,
+          error: "Ushbu telefon raqam ro'yxatdan o'tmagan! Iltimos, 'Ro'yxatdan o'tish' bo'limi orqali hisob oching.",
+          notRegistered: true,
+        };
+      }
+
+      const userData: AppUser = {
+        id: existing.id,
+        fullName: existing.full_name,
+        phone: existing.phone,
+        role: existing.role,
+        createdAt: existing.created_at,
+      };
+
       setUser(userData);
       localStorage.setItem(SESSION_KEY, userData.id);
-      return { ok: true };
-    } else {
-      const { data: newUser, error: insertError } = await supabase.from("app_users").insert({
-          full_name: fullName, phone: cleanPhone, role: isAdminLogin ? 'super_admin' : 'user', password: password || null
-        }).select().single();
+      return { ok: true, isAdmin: ["admin", "super_admin"].includes(existing.role) };
+    },
+    [supabase]
+  );
 
-      if (insertError || !newUser) return { ok: false, error: "Tizimga kirishda xatolik yuz berdi." };
-      const userData: AppUser = { id: newUser.id, fullName: newUser.full_name, phone: newUser.phone, role: newUser.role, createdAt: newUser.created_at };
+  const signup = useCallback(
+    async (fullName: string, phone: string) => {
+      const cleanPhone = normalizePhone(phone);
+      const isSuper = isSuperAdminPhone(cleanPhone);
+
+      // Telefon raqam oldin ro'yxatdan o'tganligini tekshirish
+      const { data: existing } = await supabase
+        .from("app_users")
+        .select("id, phone, role")
+        .eq("phone", cleanPhone)
+        .maybeSingle();
+
+      if (existing) {
+        return {
+          ok: false,
+          error: "Ushbu telefon raqam allaqachon ro'yxatdan o'tgan! Iltimos, 'Kirish' bo'limidan hisobingizga kiring.",
+          alreadyRegistered: true,
+        };
+      }
+
+      const assignedRole = isSuper ? "super_admin" : "user";
+      const cleanName = fullName.trim() || (isSuper ? "Muzaffar" : "Foydalanuvchi");
+
+      const { data: newUser, error: insertError } = await supabase
+        .from("app_users")
+        .insert({
+          full_name: cleanName,
+          phone: cleanPhone,
+          role: assignedRole,
+        })
+        .select()
+        .single();
+
+      if (insertError || !newUser) {
+        return {
+          ok: false,
+          error: "Ro'yxatdan o'tishda xatolik: " + (insertError?.message || ""),
+        };
+      }
+
+      const userData: AppUser = {
+        id: newUser.id,
+        fullName: newUser.full_name,
+        phone: newUser.phone,
+        role: newUser.role,
+        createdAt: newUser.created_at,
+      };
+
       setUser(userData);
       localStorage.setItem(SESSION_KEY, userData.id);
-      return { ok: true };
-    }
-  }, [supabase]);
+      return { ok: true, isAdmin: isSuper };
+    },
+    [supabase]
+  );
 
   const logout = useCallback(() => {
     localStorage.removeItem(SESSION_KEY);
@@ -100,7 +264,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const isAdmin = !!user && ["admin", "super_admin"].includes(user.role);
 
   return (
-    <AuthContext.Provider value={{ user, ready, login, logout, updateProfile, isAdmin }}>
+    <AuthContext.Provider value={{ user, ready, login, signup, logout, updateProfile, isAdmin }}>
       {children}
     </AuthContext.Provider>
   );
