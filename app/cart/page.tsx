@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Trash2, Ticket, CheckCircle2, AlertCircle } from "lucide-react";
 import { Header } from "@/components/shop/Header";
 import { Footer } from "@/components/shop/Footer";
@@ -21,13 +21,20 @@ export default function CartPage() {
   const [discountAmount, setDiscountAmount] = useState(0);
   const [promoError, setPromoError] = useState("");
 
-  const detailed = items
-    .map((i) => ({ item: i, product: products.find((p) => p.id === i.productId) }))
-    .filter((x) => x.product);
+  const detailed = useMemo(
+    () =>
+      items
+        .map((i) => ({ item: i, product: products.find((p) => p.id === i.productId) }))
+        .filter((x) => x.product),
+    [items, products]
+  );
 
-  const subtotal = detailed.reduce((sum, x) => sum + (x.product!.price * x.item.quantity), 0);
-  const freeDelivery = subtotal >= 500000 || subtotal === 0;
-  const total = Math.max(0, subtotal - discountAmount);
+  const subtotal = useMemo(
+    () => detailed.reduce((sum, x) => sum + x.product!.price * x.item.quantity, 0),
+    [detailed]
+  );
+  const freeDelivery = useMemo(() => subtotal >= 500000 || subtotal === 0, [subtotal]);
+  const total = useMemo(() => Math.max(0, subtotal - discountAmount), [subtotal, discountAmount]);
 
   // Restore saved promo if valid
   useEffect(() => {

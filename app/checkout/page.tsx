@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { CheckCircle2 } from "lucide-react";
 import { Header } from "@/components/shop/Header";
 import { Footer } from "@/components/shop/Footer";
@@ -49,14 +49,30 @@ export default function CheckoutPage() {
     } catch {}
   }, []);
 
-  const detailed = items
-    .map((i) => ({ item: i, product: products.find((p) => p.id === i.productId) }))
-    .filter((x) => x.product);
+  const detailed = useMemo(
+    () =>
+      items
+        .map((i) => ({ item: i, product: products.find((p) => p.id === i.productId) }))
+        .filter((x) => x.product),
+    [items, products]
+  );
 
-  const subtotal = detailed.reduce((sum, x) => sum + x.product!.price * x.item.quantity, 0);
-  const discountAmount = appliedPromo && subtotal >= appliedPromo.min_order_amount ? appliedPromo.discount : 0;
-  const deliveryFee = subtotal >= 500000 || subtotal === 0 ? 0 : 30000;
-  const total = Math.max(0, subtotal - discountAmount) + deliveryFee;
+  const subtotal = useMemo(
+    () => detailed.reduce((sum, x) => sum + x.product!.price * x.item.quantity, 0),
+    [detailed]
+  );
+  const discountAmount = useMemo(
+    () => (appliedPromo && subtotal >= appliedPromo.min_order_amount ? appliedPromo.discount : 0),
+    [appliedPromo, subtotal]
+  );
+  const deliveryFee = useMemo(
+    () => (subtotal >= 500000 || subtotal === 0 ? 0 : 30000),
+    [subtotal]
+  );
+  const total = useMemo(
+    () => Math.max(0, subtotal - discountAmount) + deliveryFee,
+    [subtotal, discountAmount, deliveryFee]
+  );
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();

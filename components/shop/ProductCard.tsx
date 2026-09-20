@@ -10,7 +10,7 @@ import { useWishlist } from "@/context/WishlistContext";
 import { useCart } from "@/context/CartContext";
 import { useStore } from "@/lib/store";
 
-export function ProductCard({
+export const ProductCard = React.memo(function ProductCard({
   product,
   variant = "compact",
 }: {
@@ -35,27 +35,19 @@ export function ProductCard({
     return getProductPublicUrl(product.slug || product.id);
   };
 
-  const [telegramHref, setTelegramHref] = useState(() => {
+  const telegramHref = useMemo(() => {
     const url = getProductPublicUrl(product.slug || product.id);
     const text = `Assalomu alaykum! Men ushbu soatni buyurtma qilmoqchi edim:\n\n📦 Mahsulot: ${product.name}\n💰 Narxi: ${formatSom(product.price)}\n\n🔗 Havola:\n${url}`;
     return `https://t.me/Grandwatch_Admin?text=${encodeURIComponent(text)}`;
-  });
-
-  useEffect(() => {
-    const url = getProductPublicUrl(product.slug || product.id);
-    const text = `Assalomu alaykum! Men ushbu soatni buyurtma qilmoqchi edim:\n\n📦 Mahsulot: ${product.name}\n💰 Narxi: ${formatSom(product.price)}\n\n🔗 Havola:\n${url}`;
-    setTelegramHref(`https://t.me/Grandwatch_Admin?text=${encodeURIComponent(text)}`);
-  }, [product.name, product.price, product.slug, product.id]);
+  }, [product.slug, product.id, product.name, product.price]);
 
   const [activeIndex, setActiveIndex] = useState(0);
   const touchStartXRef = useRef<number | null>(null);
   const touchStartYRef = useRef<number | null>(null);
-  const mouseStartXRef = useRef<number | null>(null);
-  const mouseStartYRef = useRef<number | null>(null);
   const hasSwipedRef = useRef(false);
 
   const images = useMemo(() => {
-    const all = [product.image, ...(product.images?.map(i => i.url) || [])].filter(Boolean) as string[];
+    const all = [product.image, ...(product.images?.map((i) => i.url) || [])].filter(Boolean) as string[];
     return all.length > 0 ? all : [];
   }, [product]);
 
@@ -91,12 +83,6 @@ export function ProductCard({
     }
   };
 
-  const onTouchEndHandler = () => {
-    if (touchStartXRef.current === null || images.length <= 1) return;
-    touchStartXRef.current = null;
-    touchStartYRef.current = null;
-  };
-
   const onTouchEndAction = (e: React.TouchEvent) => {
     if (touchStartXRef.current === null || images.length <= 1) return;
     const touch = e.changedTouches[0];
@@ -104,39 +90,6 @@ export function ProductCard({
     const diffY = touch.clientY - (touchStartYRef.current ?? touch.clientY);
     touchStartXRef.current = null;
     touchStartYRef.current = null;
-
-    if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 25) {
-      hasSwipedRef.current = true;
-      if (diffX < 0) {
-        handleNext();
-      } else {
-        handlePrev();
-      }
-    }
-  };
-
-  const onMouseDownHandler = (e: React.MouseEvent) => {
-    if (images.length <= 1) return;
-    mouseStartXRef.current = e.clientX;
-    mouseStartYRef.current = e.clientY;
-    hasSwipedRef.current = false;
-  };
-
-  const onMouseMoveHandler = (e: React.MouseEvent) => {
-    if (mouseStartXRef.current === null || images.length <= 1) return;
-    const diffX = e.clientX - mouseStartXRef.current;
-    const diffY = e.clientY - (mouseStartYRef.current ?? e.clientY);
-    if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 15) {
-      hasSwipedRef.current = true;
-    }
-  };
-
-  const onMouseUpHandler = (e: React.MouseEvent) => {
-    if (mouseStartXRef.current === null || images.length <= 1) return;
-    const diffX = e.clientX - mouseStartXRef.current;
-    const diffY = e.clientY - (mouseStartYRef.current ?? e.clientY);
-    mouseStartXRef.current = null;
-    mouseStartYRef.current = null;
 
     if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 25) {
       hasSwipedRef.current = true;
@@ -203,9 +156,6 @@ export function ProductCard({
           onTouchStart={images.length > 1 ? onTouchStartHandler : undefined}
           onTouchMove={images.length > 1 ? onTouchMoveHandler : undefined}
           onTouchEnd={images.length > 1 ? onTouchEndAction : undefined}
-          onMouseDown={images.length > 1 ? onMouseDownHandler : undefined}
-          onMouseMove={images.length > 1 ? onMouseMoveHandler : undefined}
-          onMouseUp={images.length > 1 ? onMouseUpHandler : undefined}
           draggable={false}
         >
           {images.length > 0 ? (
@@ -361,4 +311,4 @@ export function ProductCard({
       </div>
     </div>
   );
-}
+});

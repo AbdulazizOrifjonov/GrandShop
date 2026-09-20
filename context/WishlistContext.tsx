@@ -5,6 +5,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useState,
 } from "react";
 import { useRouter } from "next/navigation";
@@ -97,8 +98,13 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
 
   const isWished = useCallback((productId: string) => (user ? ids.includes(productId) : false), [ids, user]);
 
+  const contextValue = useMemo(
+    () => ({ ids, toggle, isWished, remove, clear }),
+    [ids, toggle, isWished, remove, clear]
+  );
+
   return (
-    <WishlistContext.Provider value={{ ids, toggle, isWished, remove, clear }}>
+    <WishlistContext.Provider value={contextValue}>
       {children}
     </WishlistContext.Provider>
   );
