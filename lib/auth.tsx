@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
@@ -50,7 +50,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = useCallback(async (fullName: string, phone: string, password?: string) => {
     const cleanPhone = phone.replace(/\s+/g, '');
-    const isAdminLogin = cleanPhone === "+998977657180";
+    const isAdminLogin = cleanPhone === "+998977657180" || cleanPhone === "+998935821774";
     
     if (isAdminLogin && password !== "GRANDWATCHSHOP") return { ok: false, error: "Parol noto'g'ri!" };
 
@@ -62,16 +62,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         await supabase.from("app_users").update({ full_name: fullName }).eq("id", existing.id);
         userData.fullName = fullName;
       }
-      if (isAdminLogin && existing.role !== 'admin') {
-        await supabase.from("app_users").update({ role: 'admin' }).eq("id", existing.id);
-        userData.role = 'admin';
+      if (isAdminLogin && existing.role !== 'super_admin') {
+        await supabase.from("app_users").update({ role: 'super_admin' }).eq("id", existing.id);
+        userData.role = 'super_admin';
       }
       setUser(userData);
       localStorage.setItem(SESSION_KEY, userData.id);
       return { ok: true };
     } else {
       const { data: newUser, error: insertError } = await supabase.from("app_users").insert({
-          full_name: fullName, phone: cleanPhone, role: isAdminLogin ? 'admin' : 'user', password: password || null
+          full_name: fullName, phone: cleanPhone, role: isAdminLogin ? 'super_admin' : 'user', password: password || null
         }).select().single();
 
       if (insertError || !newUser) return { ok: false, error: "Tizimga kirishda xatolik yuz berdi." };

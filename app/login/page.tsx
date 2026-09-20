@@ -20,7 +20,7 @@ function LoginForm() {
   const [loading, setLoading] = useState(false);
 
   const cleanPhone = phone.replace(/\s+/g, '');
-  const isAdminLogin = cleanPhone === "+998977657180";
+  const isAdminLogin = cleanPhone === "+998977657180" || cleanPhone === "+998935821774";
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
