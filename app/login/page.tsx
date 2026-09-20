@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, Suspense } from "react";
-import { LogIn, UserPlus, ShieldCheck, Eye, EyeOff, AlertCircle, CheckCircle2 } from "lucide-react";
+import { LogIn, UserPlus, ShieldCheck, AlertCircle, CheckCircle2 } from "lucide-react";
 import { Header } from "@/components/shop/Header";
 import { Footer } from "@/components/shop/Footer";
 import { useAuth, isSuperAdminPhone, normalizePhone } from "@/lib/auth";
@@ -18,8 +18,6 @@ function AuthForm() {
   const [mode, setMode] = useState<"login" | "signup">("login");
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("+998 ");
-  const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
   const [loading, setLoading] = useState(false);
@@ -40,10 +38,10 @@ function AuthForm() {
     setLoading(true);
 
     if (mode === "login") {
-      // 1. KIRISH (LOGIN)
+      // 1. KIRISH (LOGIN) - Parol talab qilinmaydi!
       const res = await login(
         cleanPhone,
-        isAdminPhoneDetected ? password : "",
+        "",
         isAdminPhoneDetected ? (fullName || "Muzaffar") : fullName
       );
       setLoading(false);
@@ -142,33 +140,35 @@ function AuthForm() {
           </p>
         </div>
 
-        {/* Super Admin Belgisi (Agar admin raqami kiritilsa) */}
+        {/* Super Admin Tanilganda Chiqadigan Nishon (Parol so'ralmaydi!) */}
         {isAdminPhoneDetected && (
-          <div className="mb-4 rounded-xl border border-amber-300 bg-gradient-to-r from-amber-50 to-orange-50 p-3 text-xs text-amber-950 flex items-center gap-2.5 shadow-xs animate-in fade-in duration-200">
-            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-amber-500 text-white font-bold">
-              <ShieldCheck size={16} />
+          <div className="mb-5 rounded-2xl border border-amber-300/80 bg-gradient-to-r from-amber-50 to-orange-50/80 p-3.5 text-xs text-amber-950 flex items-center gap-3 shadow-xs animate-in fade-in duration-200">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-500 text-white font-bold shadow-xs">
+              <ShieldCheck size={18} />
             </div>
             <div>
-              <p className="font-bold text-amber-950">Super Admin kirish rejimi</p>
-              <p className="text-[11px] text-amber-900/70">Muzaffar, admin parolingizni kiriting</p>
+              <p className="font-bold text-amber-950 text-sm">Super Admin aniqlandi</p>
+              <p className="text-[11px] text-amber-900/70 mt-0.5">
+                Xush kelibsiz! Kirish tugmasini bosib to'g'ridan-to'g'ri admin panelga o'ting.
+              </p>
             </div>
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Ro'yxatdan o'tish rejimida yoki Admin bo'lganda Ism kiritish */}
-          {(mode === "signup" || isAdminPhoneDetected) && (
+          {/* Ro'yxatdan o'tish rejimida Ism kiritish */}
+          {mode === "signup" && (
             <div className="animate-in fade-in duration-200">
               <label className="mb-1 block text-xs font-semibold text-navy-900">
-                Ism va Familiya {mode === "signup" && <span className="text-danger">*</span>}
+                Ism va Familiya <span className="text-danger">*</span>
               </label>
               <input
                 type="text"
-                required={mode === "signup"}
+                required
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
                 className="w-full rounded-xl border border-navy-200/80 bg-white px-3.5 py-2.5 text-sm font-medium text-navy-950 outline-none focus:border-navy-900 focus:ring-2 focus:ring-navy-900/10 transition"
-                placeholder={isAdminPhoneDetected ? "Muzaffar" : "Ismingiz"}
+                placeholder="Ism va familiyangizni kiriting"
               />
             </div>
           )}
@@ -184,36 +184,9 @@ function AuthForm() {
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               className="w-full rounded-xl border border-navy-200/80 bg-white px-3.5 py-2.5 text-sm font-medium text-navy-950 outline-none focus:border-navy-900 focus:ring-2 focus:ring-navy-900/10 transition"
-              placeholder="+998 97 765 71 80"
+              placeholder="+998 -- --- -- --"
             />
           </div>
-
-          {/* Admin Parol maydoni (Faqat admin raqam kiritilganda chiqadi) */}
-          {isAdminPhoneDetected && (
-            <div className="animate-in fade-in duration-200">
-              <label className="mb-1 block text-xs font-semibold text-danger flex items-center justify-between">
-                <span>Admin Paroli *</span>
-                <span className="text-[10px] font-normal text-navy-900/40">GRANDWATCHSHOP</span>
-              </label>
-              <div className="relative">
-                <input
-                  type={showPassword ? "text" : "password"}
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full rounded-xl border border-amber-300 bg-amber-50/20 px-3.5 py-2.5 text-sm font-medium text-navy-950 outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-400/20 pr-10 transition"
-                  placeholder="••••••••"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-navy-900/40 hover:text-navy-900"
-                >
-                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                </button>
-              </div>
-            </div>
-          )}
 
           {/* Xatolik xabari */}
           {error && (
@@ -316,7 +289,7 @@ export default function LoginPage() {
       <Header active="/login" />
       <Suspense
         fallback={
-          <div className="container-shop flex min-h-[70vh] items-center justify-center text-sm text-navy-900/50">
+          <div className="container-shop flex min-h-[75vh] items-center justify-center text-sm text-navy-900/50">
             Yuklanmoqda...
           </div>
         }
