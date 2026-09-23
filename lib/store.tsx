@@ -92,16 +92,21 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     async function loadData() {
       try {
         const [
-          { data: p },
-          { data: c },
-          { data: s },
-          { data: o }
-        ] = await Promise.all([
+          resP,
+          resC,
+          resS,
+          resO
+        ] = await Promise.allSettled([
           supabase.from("products").select("*").order("created_at", { ascending: false }),
           supabase.from("categories").select("*"),
           supabase.from("sliders").select("*").order("sort_order", { ascending: true }),
           supabase.from("orders").select("*").order("created_at", { ascending: false })
         ]);
+
+        const p = resP.status === "fulfilled" ? resP.value.data : null;
+        const c = resC.status === "fulfilled" ? resC.value.data : null;
+        const s = resS.status === "fulfilled" ? resS.value.data : null;
+        const o = resO.status === "fulfilled" ? resO.value.data : null;
         if (p) setProducts(p);
         if (c) setCategories(c);
         if (s) {
