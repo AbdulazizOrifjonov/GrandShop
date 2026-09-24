@@ -33,7 +33,6 @@ export default function CartPage() {
     () => detailed.reduce((sum, x) => sum + x.product!.price * x.item.quantity, 0),
     [detailed]
   );
-  const freeDelivery = useMemo(() => subtotal >= 500000 || subtotal === 0, [subtotal]);
   const total = useMemo(() => Math.max(0, subtotal - discountAmount), [subtotal, discountAmount]);
 
   // Restore saved promo if valid
@@ -225,8 +224,8 @@ export default function CartPage() {
             </div>
             <div className="flex justify-between">
               <span className="text-navy-900/60">Yetkazib berish</span>
-              <span className={freeDelivery ? "text-success font-semibold" : "font-semibold text-navy-900"}>
-                {freeDelivery ? "Bepul" : formatSom(30000)}
+              <span className="font-semibold text-navy-900">
+                Kelishilgan holda
               </span>
             </div>
             {discountAmount > 0 && (
@@ -240,7 +239,7 @@ export default function CartPage() {
           </div>
           <div className="flex justify-between border-t border-navy-100 pt-3 text-lg font-bold text-navy-950">
             <span>Jami</span>
-            <span>{formatSom(total + (freeDelivery ? 0 : 30000))}</span>
+            <span>{formatSom(total)}</span>
           </div>
           <Link
             href="/checkout"
@@ -316,7 +315,7 @@ export default function CartPage() {
           </div>
 
           <div className="rounded-lg bg-navy-50 p-3 text-xs text-navy-900/70">
-            🚚 Bepul yetkazib berish — 500 000 so'mdan yuqori buyurtmalarda
+            🚚 Yetkazib berish xizmati — kelishilgan holda amalga oshiriladi
           </div>
         </aside>
       </div>

@@ -47,7 +47,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const title = `${product.name} — Grand Watch Shop`;
   const desc = product.description
     ? `${product.description.slice(0, 160)}... Narxi: ${formattedPrice}`
-    : `Grand Watch Shop — ${product.name}. Narxi: ${formattedPrice}. Bepul yetkazib berish va 2 yillik rasmiy kafolat!`;
+    : `Grand Watch Shop — ${product.name}. Narxi: ${formattedPrice}. Yetkazib berish kelishilgan holda va 2 yillik rasmiy kafolat!`;
 
   return {
     title,

@@ -65,13 +65,10 @@ export default function CheckoutPage() {
     () => (appliedPromo && subtotal >= appliedPromo.min_order_amount ? appliedPromo.discount : 0),
     [appliedPromo, subtotal]
   );
-  const deliveryFee = useMemo(
-    () => (subtotal >= 500000 || subtotal === 0 ? 0 : 30000),
-    [subtotal]
-  );
+  const deliveryFee = 0;
   const total = useMemo(
-    () => Math.max(0, subtotal - discountAmount) + deliveryFee,
-    [subtotal, discountAmount, deliveryFee]
+    () => Math.max(0, subtotal - discountAmount),
+    [subtotal, discountAmount]
   );
 
   async function handleSubmit(e: React.FormEvent) {
@@ -294,7 +291,7 @@ export default function CheckoutPage() {
             </div>
             <div className="space-y-2 border-t border-navy-100 pt-3 text-sm">
               <div className="flex justify-between"><span className="text-navy-900/60">Mahsulotlar</span><span>{formatSom(subtotal)}</span></div>
-              <div className="flex justify-between"><span className="text-navy-900/60">Yetkazib berish</span><span>{deliveryFee ? formatSom(deliveryFee) : "Bepul"}</span></div>
+              <div className="flex justify-between"><span className="text-navy-900/60">Yetkazib berish</span><span className="font-semibold text-navy-900">Kelishilgan holda</span></div>
               {discountAmount > 0 && (
                 <div className="flex justify-between text-success font-semibold">
                   <span>Chegirma ({appliedPromo?.code})</span>

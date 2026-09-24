@@ -54,7 +54,7 @@ const DEFAULT_SLIDES: Slider[] = [
   {
     id: "s5",
     title: "Tissot & Maxsus Chegirmalar",
-    subtitle: "O'zbekiston bo'ylab 1 kunda bepul yetkazib berish. 30% gacha maxsus mavsumiy chegirmalar.",
+    subtitle: "O'zbekiston bo'ylab kelishilgan holda tez yetkazib berish. 30% gacha maxsus mavsumiy chegirmalar.",
     image_url: "https://images.unsplash.com/photo-1619134778706-7015533a6150?q=80&w=1920&auto=format&fit=crop",
     button_text: "Aksiyalarni ko'rish",
     link: "/products?sale=1",

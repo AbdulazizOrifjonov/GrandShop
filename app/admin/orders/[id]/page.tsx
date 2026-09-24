@@ -396,8 +396,8 @@ export default function AdminOrderDetailPage({
 
                 <div className="flex justify-between text-navy-900/70">
                   <span>Yetkazib berish:</span>
-                  <span className={order.delivery_fee ? "font-semibold text-navy-900" : "font-semibold text-emerald-600"}>
-                    {order.delivery_fee ? formatSom(order.delivery_fee) : "Bepul"}
+                  <span className="font-semibold text-navy-900">
+                    {order.delivery_fee ? formatSom(order.delivery_fee) : "Kelishilgan holda"}
                   </span>
                 </div>
 

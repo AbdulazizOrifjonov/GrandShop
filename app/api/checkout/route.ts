@@ -188,7 +188,7 @@ export async function POST(req: Request) {
       `\n📦 <b>Buyurtma tarkibi:</b> ${preparedItems.length} xil soat (${totalItemCount} dona)\n` +
       (data.subtotal ? `💰 <b>Oraliq summa:</b> ${formatPrice(data.subtotal)} so'm\n` : "") +
       (data.discount ? `🎟 <b>Chegirma:</b> -${formatPrice(data.discount)} so'm\n` : "") +
-      `🚚 <b>Yetkazib berish:</b> ${data.deliveryFee ? formatPrice(data.deliveryFee) + " so'm" : "Bepul"}\n` +
+      `🚚 <b>Yetkazib berish:</b> ${data.deliveryFee ? formatPrice(data.deliveryFee) + " so'm" : "Kelishilgan holda"}\n` +
       `💳 <b>JAMI TO'LOV:</b> <b>${formatPrice(data.total)} so'm</b>\n\n` +
       `──────────────────────────────────────\n` +
       `👇 <b>Har bir mahsulot rasmlari va ma'lumotlari alohida:</b>`;

@@ -69,7 +69,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                 {order.note && <p><span className="text-navy-900/50">Izoh:</span> {order.note}</p>}
                 <div className="border-t border-navy-100 pt-3 space-y-1">
                   <div className="flex justify-between"><span className="text-navy-900/50">Mahsulotlar</span><span>{formatSom(order.subtotal)}</span></div>
-                  <div className="flex justify-between"><span className="text-navy-900/50">Yetkazib berish</span><span>{order.delivery_fee ? formatSom(order.delivery_fee) : "Bepul"}</span></div>
+                  <div className="flex justify-between"><span className="text-navy-900/50">Yetkazib berish</span><span>{order.delivery_fee ? formatSom(order.delivery_fee) : "Kelishilgan holda"}</span></div>
                   <div className="flex justify-between text-base font-bold"><span>Jami</span><span>{formatSom(order.total)}</span></div>
                 </div>
               </aside>

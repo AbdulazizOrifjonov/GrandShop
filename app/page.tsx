@@ -11,7 +11,7 @@ import { SaleCountdown } from "@/components/shop/SaleCountdown";
 import { useStore } from "@/lib/store";
 
 const USPS = [
-  { icon: Truck, title: "Bepul yetkazib berish", subtitle: "500 000 so'mdan" },
+  { icon: Truck, title: "Yetkazib berish", subtitle: "Kelishilgan holda" },
   { icon: ShieldCheck, title: "100% Original", subtitle: "Rasmiy kafolat" },
   { icon: CreditCard, title: "Qulay to'lov", subtitle: "Barcha usullar" },
   { icon: Headphones, title: "24/7 Qo'llab-quvvatlash", subtitle: "Doimo aloqada" },

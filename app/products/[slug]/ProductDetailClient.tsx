@@ -508,8 +508,8 @@ export default function ProductDetailClient({
                 <Truck size={18} />
               </div>
               <div>
-                <p className="text-sm font-semibold text-navy-900">Bepul yetkazish</p>
-                <p className="text-xs text-navy-900/60">500 000 so'mdan yuqori</p>
+                <p className="text-sm font-semibold text-navy-900">Yetkazib berish</p>
+                <p className="text-xs text-navy-900/60">Kelishilgan holda</p>
               </div>
             </div>
             <div className="flex items-center gap-3 rounded-xl border border-navy-100 p-4 bg-navy-50/50">
@@ -599,8 +599,9 @@ export default function ProductDetailClient({
           {tab === "Sharhlar" && <p>{product.reviews_count ?? 0} ta sharh mavjud.</p>}
           {tab === "Yetkazib berish" && (
             <div className="space-y-2">
-              <p>O'zbekiston bo'ylab yetkazib berish 1-3 ish kunida amalga oshiriladi.</p>
+              <p>O'zbekiston bo'ylab yetkazib berish kelishilgan holda 1-3 ish kunida amalga oshiriladi.</p>
               <ul className="list-disc pl-5 mt-2 space-y-1">
+                <li>Yetkazib berish narxi: Kelishilgan holda</li>
                 <li>Toshkent shahri ichida: 24 soat ichida</li>
                 <li>Viloyat markazlariga: 2 ish kuni</li>
                 <li>Tumanlarga: 3 ish kunigacha</li>
